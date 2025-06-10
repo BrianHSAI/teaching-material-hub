@@ -34,32 +34,35 @@ export const FolderCard = ({ folder, files, onMoveFile }: FolderCardProps) => {
   return (
     <div>
       <Card 
-        className={`p-4 cursor-pointer hover:shadow-md transition-all ${
-          isDragOver ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+        className={`p-6 cursor-pointer glass-effect hover-glow neon-border transition-all duration-300 ${
+          isDragOver ? 'ring-2 ring-primary scale-105' : ''
         }`}
         onClick={() => setIsOpen(!isOpen)}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        style={{ backgroundColor: isDragOver ? undefined : folder.color + '20' }}
+        style={{ 
+          backgroundColor: isDragOver ? 'rgba(251, 191, 36, 0.1)' : undefined,
+          borderColor: folder.color + '60'
+        }}
       >
-        <div className="flex flex-col items-center space-y-2">
+        <div className="flex flex-col items-center space-y-3">
           {isOpen ? (
-            <FolderOpen className="h-8 w-8" style={{ color: folder.color }} />
+            <FolderOpen className="h-10 w-10 drop-shadow-lg" style={{ color: folder.color }} />
           ) : (
-            <Folder className="h-8 w-8" style={{ color: folder.color }} />
+            <Folder className="h-10 w-10 drop-shadow-lg" style={{ color: folder.color }} />
           )}
           <div className="text-center">
-            <h3 className="font-medium text-sm">{folder.name}</h3>
-            <p className="text-xs text-gray-500">{files.length} filer</p>
+            <h3 className="font-bold text-base text-foreground drop-shadow-sm">{folder.name}</h3>
+            <p className="text-sm text-muted-foreground">{files.length} filer</p>
           </div>
         </div>
       </Card>
       
       {isOpen && files.length > 0 && (
-        <div className="mt-2 ml-4 space-y-2">
+        <div className="mt-4 ml-6 space-y-3 animate-fade-in">
           {files.map(file => (
-            <div key={file.id} className="scale-90">
+            <div key={file.id} className="scale-95 transform">
               <FileCard
                 file={file}
                 onMoveToFolder={onMoveFile}

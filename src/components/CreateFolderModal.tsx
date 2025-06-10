@@ -12,14 +12,14 @@ interface CreateFolderModalProps {
 }
 
 const folderColors = [
-  "#3B82F6", // Blue
-  "#10B981", // Green
-  "#F59E0B", // Yellow
-  "#EF4444", // Red
-  "#8B5CF6", // Purple
-  "#F97316", // Orange
-  "#06B6D4", // Cyan
-  "#84CC16", // Lime
+  "#fbbf24", // Gold
+  "#f59e0b", // Amber  
+  "#d97706", // Orange
+  "#dc2626", // Red
+  "#7c3aed", // Purple
+  "#2563eb", // Blue
+  "#059669", // Green
+  "#0891b2", // Cyan
 ];
 
 export const CreateFolderModal = ({ open, onClose, onCreate }: CreateFolderModalProps) => {
@@ -37,32 +37,33 @@ export const CreateFolderModal = ({ open, onClose, onCreate }: CreateFolderModal
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md glass-effect border-border/50">
         <DialogHeader>
-          <DialogTitle>Opret ny mappe</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-foreground">Opret ny mappe</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <Label htmlFor="folder-name">Mappenavn *</Label>
+            <Label htmlFor="folder-name" className="text-foreground font-medium">Mappenavn *</Label>
             <Input
               id="folder-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="f.eks. Dansk, Matematik, 9. klasse..."
               required
+              className="mt-2 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
             />
           </div>
 
           <div>
-            <Label>Mappefarve</Label>
-            <div className="grid grid-cols-4 gap-2 mt-2">
+            <Label className="text-foreground font-medium">Mappefarve</Label>
+            <div className="grid grid-cols-4 gap-3 mt-3">
               {folderColors.map(color => (
                 <button
                   key={color}
                   type="button"
-                  className={`w-8 h-8 rounded-full border-2 ${
-                    selectedColor === color ? 'border-gray-800' : 'border-gray-300'
+                  className={`w-10 h-10 rounded-full border-2 transition-all duration-300 hover:scale-110 ${
+                    selectedColor === color ? 'border-foreground shadow-lg scale-110' : 'border-border/30'
                   }`}
                   style={{ backgroundColor: color }}
                   onClick={() => setSelectedColor(color)}
@@ -71,11 +72,19 @@ export const CreateFolderModal = ({ open, onClose, onCreate }: CreateFolderModal
             </div>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="bg-background/50 border-border/50 hover:bg-muted/50"
+            >
               Annuller
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+            <Button 
+              type="submit" 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+            >
               Opret mappe
             </Button>
           </div>
