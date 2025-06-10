@@ -67,9 +67,9 @@ const mockPublicMaterials: FileData[] = [
 
 export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterFormat, setFilterFormat] = useState("");
-  const [filterLanguage, setFilterLanguage] = useState("");
-  const [filterDifficulty, setFilterDifficulty] = useState("");
+  const [filterFormat, setFilterFormat] = useState("all");
+  const [filterLanguage, setFilterLanguage] = useState("all");
+  const [filterDifficulty, setFilterDifficulty] = useState("all");
   const [results, setResults] = useState<FileData[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -82,13 +82,13 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
        material.author.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    if (filterFormat) {
+    if (filterFormat && filterFormat !== "all") {
       filtered = filtered.filter(material => material.format === filterFormat);
     }
-    if (filterLanguage) {
+    if (filterLanguage && filterLanguage !== "all") {
       filtered = filtered.filter(material => material.language === filterLanguage);
     }
-    if (filterDifficulty) {
+    if (filterDifficulty && filterDifficulty !== "all") {
       filtered = filtered.filter(material => material.difficulty === filterDifficulty);
     }
 
@@ -135,7 +135,7 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
                     <SelectValue placeholder="Alle formater" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Alle formater</SelectItem>
+                    <SelectItem value="all">Alle formater</SelectItem>
                     <SelectItem value="pdf">PDF</SelectItem>
                     <SelectItem value="word">Word</SelectItem>
                     <SelectItem value="link">Link</SelectItem>
@@ -152,7 +152,7 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
                     <SelectValue placeholder="Alle sprog" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Alle sprog</SelectItem>
+                    <SelectItem value="all">Alle sprog</SelectItem>
                     <SelectItem value="dansk">Dansk</SelectItem>
                     <SelectItem value="engelsk">Engelsk</SelectItem>
                     <SelectItem value="tysk">Tysk</SelectItem>
@@ -169,7 +169,7 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
                     <SelectValue placeholder="Alle sværhedsgrader" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Alle sværhedsgrader</SelectItem>
+                    <SelectItem value="all">Alle sværhedsgrader</SelectItem>
                     <SelectItem value="let">Let</SelectItem>
                     <SelectItem value="mellem">Mellem</SelectItem>
                     <SelectItem value="svær">Svær</SelectItem>

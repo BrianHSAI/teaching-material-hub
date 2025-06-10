@@ -220,7 +220,7 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
                   <SelectValue placeholder="Vælg mappe eller lad stå tom for skrivebord" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Skrivebord</SelectItem>
+                  <SelectItem value="desktop">Skrivebord</SelectItem>
                   {folders.map(folder => (
                     <SelectItem key={folder.id} value={folder.id}>{folder.name}</SelectItem>
                   ))}
