@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,7 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
     difficulty: "",
     classLevel: "",
     tags: "",
-    isPublic: false,
+    isPublic: true,
     folderId: "",
     fileUrl: "",
     gdprCompliant: false,
@@ -38,6 +37,11 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
     
     if (!formData.gdprCompliant) {
       alert("Du skal bekræfte at materialet overholder GDPR og ophavsret");
+      return;
+    }
+
+    if (!formData.fileUrl) {
+      alert("Du skal indsætte et link til materialet");
       return;
     }
 
@@ -63,7 +67,7 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
       difficulty: "",
       classLevel: "",
       tags: "",
-      isPublic: false,
+      isPublic: true,
       folderId: "",
       fileUrl: "",
       gdprCompliant: false,
@@ -74,7 +78,7 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Upload nyt undervisningsmateriale</DialogTitle>
+          <DialogTitle>Tilføj nyt undervisningsmateriale</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,15 +114,18 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
           </div>
 
           <div>
-            <Label htmlFor="fileUrl">Fil eller link *</Label>
+            <Label htmlFor="fileUrl">Link til materiale *</Label>
             <Input
               id="fileUrl"
               type="url"
-              placeholder="Indsæt link eller upload fil"
+              placeholder="https://example.com/dokument.pdf"
               value={formData.fileUrl}
               onChange={(e) => setFormData(prev => ({ ...prev, fileUrl: e.target.value }))}
               required
             />
+            <p className="text-sm text-gray-500 mt-1">
+              Indsæt link til Google Drive, OneDrive, YouTube, eller andre platforme
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -235,7 +242,9 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
               checked={formData.isPublic}
               onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPublic: !!checked }))}
             />
-            <Label htmlFor="isPublic">Gør materialet offentligt (andre kan finde det)</Label>
+            <Label htmlFor="isPublic">
+              Gør materialet synligt for andre brugere (anbefalet)
+            </Label>
           </div>
 
           <div className="flex items-center space-x-2">

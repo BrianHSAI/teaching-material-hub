@@ -1,15 +1,19 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Plus, Search, Settings } from "lucide-react";
+import { Plus, Search, Settings, LogOut } from "lucide-react";
 import { FileUploadModal } from "@/components/FileUploadModal";
 import { SearchModal } from "@/components/SearchModal";
 import { ProfileModal } from "@/components/ProfileModal";
 import { FileCard } from "@/components/FileCard";
 import { FolderCard } from "@/components/FolderCard";
 import { CreateFolderModal } from "@/components/CreateFolderModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMaterials, Material } from "@/hooks/useMaterials";
+import { useFolders, Folder } from "@/hooks/useFolders";
 
+// Legacy types for compatibility with existing components
 export type FileData = {
   id: string;
   title: string;
@@ -35,37 +39,104 @@ export type FolderData = {
   color: string;
 };
 
+// Convert database types to legacy types for component compatibility
+const convertMaterialToFileData = (material: Material): FileData => ({
+  id: material.id,
+  title: material.title,
+  author: material.author,
+  source: material.source,
+  format: material.format,
+  genre: material.genre,
+  language: material.language,
+  difficulty: material.difficulty,
+  classLevel: material.class_level,
+  tags: material.tags,
+  isPublic: material.is_public,
+  fileUrl: material.file_url,
+  folderId: material.folder_id,
+  createdAt: new Date(material.created_at),
+  downloadCount: material.download_count
+});
+
+const convertFolderToFolderData = (folder: Folder): FolderData => ({
+  id: folder.id,
+  name: folder.name,
+  createdAt: new Date(folder.created_at),
+  color: folder.color
+});
+
 const Index = () => {
-  const [files, setFiles] = useState<FileData[]>([]);
-  const [folders, setFolders] = useState<FolderData[]>([]);
+  const { user, loading: authLoading, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { materials, loading: materialsLoading, createMaterial, updateMaterial } = useMaterials();
+  const { folders, loading: foldersLoading, createFolder } = useFolders();
+  
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
 
-  const handleFileUpload = (fileData: FileData) => {
-    setFiles(prev => [...prev, { ...fileData, id: Date.now().toString(), createdAt: new Date(), downloadCount: 0 }]);
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Indlæser...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if user is not logged in (redirect should happen)
+  if (!user) {
+    return null;
+  }
+
+  const handleFileUpload = async (fileData: FileData) => {
+    await createMaterial({
+      title: fileData.title,
+      author: fileData.author,
+      source: fileData.source,
+      format: fileData.format,
+      genre: fileData.genre,
+      language: fileData.language,
+      difficulty: fileData.difficulty,
+      class_level: fileData.classLevel,
+      tags: fileData.tags,
+      is_public: fileData.isPublic,
+      file_url: fileData.fileUrl || "",
+      folder_id: fileData.folderId
+    });
     setShowUploadModal(false);
   };
 
-  const handleCreateFolder = (name: string, color: string) => {
-    setFolders(prev => [...prev, { 
-      id: Date.now().toString(), 
-      name, 
-      color,
-      createdAt: new Date() 
-    }]);
+  const handleCreateFolder = async (name: string, color: string) => {
+    await createFolder(name, color);
     setShowCreateFolderModal(false);
   };
 
-  const handleMoveFileToFolder = (fileId: string, folderId: string) => {
-    setFiles(prev => prev.map(file => 
-      file.id === fileId ? { ...file, folderId } : file
-    ));
+  const handleMoveFileToFolder = async (fileId: string, folderId: string) => {
+    await updateMaterial(fileId, { folder_id: folderId === "desktop" ? null : folderId });
   };
 
-  const desktopFiles = files.filter(file => !file.folderId);
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  // Convert database types to legacy types for component compatibility
+  const legacyFiles = materials.map(convertMaterialToFileData);
+  const legacyFolders = folders.map(convertFolderToFolderData);
+  const desktopFiles = legacyFiles.filter(file => !file.folderId);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -135,6 +206,17 @@ const Index = () => {
                 <Settings className="h-4 w-4" />
                 <span>Profil</span>
               </Button>
+
+              {/* Logout Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="flex items-center space-x-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Log ud</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -142,7 +224,12 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {desktopFiles.length === 0 && folders.length === 0 ? (
+        {materialsLoading || foldersLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Indlæser materialer...</p>
+          </div>
+        ) : desktopFiles.length === 0 && legacyFolders.length === 0 ? (
           <div className="text-center py-12">
             <div className="bg-white rounded-lg shadow-sm p-8 max-w-md mx-auto">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Velkommen til dine undervisningsmaterialer!</h2>
@@ -167,11 +254,11 @@ const Index = () => {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Mit skrivebord</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {/* Folders */}
-                {folders.map(folder => (
+                {legacyFolders.map(folder => (
                   <FolderCard
                     key={folder.id}
                     folder={folder}
-                    files={files.filter(file => file.folderId === folder.id)}
+                    files={legacyFiles.filter(file => file.folderId === folder.id)}
                     onMoveFile={handleMoveFileToFolder}
                   />
                 ))}
@@ -182,7 +269,7 @@ const Index = () => {
                     key={file.id}
                     file={file}
                     onMoveToFolder={handleMoveFileToFolder}
-                    folders={folders}
+                    folders={legacyFolders}
                   />
                 ))}
               </div>
@@ -196,7 +283,7 @@ const Index = () => {
         open={showUploadModal}
         onClose={() => setShowUploadModal(false)}
         onUpload={handleFileUpload}
-        folders={folders}
+        folders={legacyFolders}
       />
 
       <SearchModal
@@ -208,7 +295,7 @@ const Index = () => {
       <ProfileModal
         open={showProfileModal}
         onClose={() => setShowProfileModal(false)}
-        files={files}
+        files={legacyFiles}
       />
 
       <CreateFolderModal

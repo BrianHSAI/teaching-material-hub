@@ -9,7 +9,114 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      folders: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      materials: {
+        Row: {
+          author: string
+          class_level: string
+          created_at: string
+          difficulty: string
+          download_count: number | null
+          file_url: string
+          folder_id: string | null
+          format: string
+          genre: string
+          id: string
+          is_public: boolean | null
+          language: string
+          source: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author: string
+          class_level: string
+          created_at?: string
+          difficulty: string
+          download_count?: number | null
+          file_url: string
+          folder_id?: string | null
+          format: string
+          genre: string
+          id?: string
+          is_public?: boolean | null
+          language: string
+          source?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author?: string
+          class_level?: string
+          created_at?: string
+          difficulty?: string
+          download_count?: number | null
+          file_url?: string
+          folder_id?: string | null
+          format?: string
+          genre?: string
+          id?: string
+          is_public?: boolean | null
+          language?: string
+          source?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
