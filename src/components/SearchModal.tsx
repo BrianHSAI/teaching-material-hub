@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,16 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
   const [loading, setLoading] = useState(false);
 
   const fetchPublicMaterials = async () => {
+    // Don't search if no criteria are provided
+    if (!searchTerm && filterFormat === "all" && filterLanguage === "all" && filterDifficulty === "all") {
+      toast({
+        title: "Søgekriterie påkrævet",
+        description: "Indtast mindst ét søgekriterie for at søge",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       let query = supabase
@@ -102,14 +112,6 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
     fetchPublicMaterials();
   };
 
-  // Load all public materials when modal opens
-  useEffect(() => {
-    if (open) {
-      setHasSearched(true);
-      fetchPublicMaterials();
-    }
-  }, [open]);
-
   const handleSaveMaterial = (material: FileData) => {
     // Create a copy with new ID for user's collection
     const newMaterial = {
@@ -125,8 +127,19 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
     });
   };
 
+  // Reset search when modal closes
+  const handleClose = () => {
+    setSearchTerm("");
+    setFilterFormat("all");
+    setFilterLanguage("all");
+    setFilterDifficulty("all");
+    setResults([]);
+    setHasSearched(false);
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Søg i offentlige undervisningsmaterialer</DialogTitle>
