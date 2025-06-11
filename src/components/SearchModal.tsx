@@ -1,11 +1,13 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileData } from "@/pages/Index";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface SearchModalProps {
   open: boolean;
@@ -13,88 +15,100 @@ interface SearchModalProps {
   onSaveFile: (fileData: FileData) => void;
 }
 
-// Mock data for public materials
-const mockPublicMaterials: FileData[] = [
-  {
-    id: "1",
-    title: "Dansk grammatik - navneord",
-    author: "Anna Hansen",
-    source: "Undervisningsportalen",
-    format: "pdf",
-    genre: "opgave",
-    language: "dansk",
-    difficulty: "mellem",
-    classLevel: "6. klasse",
-    tags: ["grammatik", "navneord", "dansk"],
-    isPublic: true,
-    fileUrl: "https://example.com/file1.pdf",
-    createdAt: new Date(),
-    downloadCount: 45,
-  },
-  {
-    id: "2", 
-    title: "Romantikkens digte",
-    author: "Lars Pedersen",
-    source: "Litteraturcenter",
-    format: "word",
-    genre: "digt",
-    language: "dansk",
-    difficulty: "svær",
-    classLevel: "2.g",
-    tags: ["romantik", "digte", "litteratur"],
-    isPublic: true,
-    fileUrl: "https://example.com/file2.docx",
-    createdAt: new Date(),
-    downloadCount: 32,
-  },
-  {
-    id: "3",
-    title: "English Grammar Exercises",
-    author: "Sarah Johnson",
-    source: "ESL Resources",
-    format: "pdf",
-    genre: "opgave",
-    language: "engelsk",
-    difficulty: "let",
-    classLevel: "8. klasse",
-    tags: ["grammar", "exercises", "english"],
-    isPublic: true,
-    fileUrl: "https://example.com/file3.pdf",
-    createdAt: new Date(),
-    downloadCount: 78,
-  },
-];
-
 export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterFormat, setFilterFormat] = useState("all");
   const [filterLanguage, setFilterLanguage] = useState("all");
   const [filterDifficulty, setFilterDifficulty] = useState("all");
   const [results, setResults] = useState<FileData[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const fetchPublicMaterials = async () => {
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('materials')
+        .select('*')
+        .eq('is_public', true);
+
+      // Apply search term filter
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,author.ilike.%${searchTerm}%,tags.cs.{${searchTerm}}`);
+      }
+
+      // Apply format filter
+      if (filterFormat && filterFormat !== "all") {
+        query = query.eq('format', filterFormat);
+      }
+
+      // Apply language filter  
+      if (filterLanguage && filterLanguage !== "all") {
+        query = query.eq('language', filterLanguage);
+      }
+
+      // Apply difficulty filter
+      if (filterDifficulty && filterDifficulty !== "all") {
+        query = query.eq('difficulty', filterDifficulty);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching public materials:', error);
+        toast({
+          title: "Fejl",
+          description: "Kunne ikke hente offentlige materialer",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Convert database materials to FileData format
+      const convertedResults: FileData[] = (data || []).map(material => ({
+        id: material.id,
+        title: material.title,
+        author: material.author,
+        source: material.source,
+        format: material.format,
+        genre: material.genre,
+        language: material.language,
+        difficulty: material.difficulty,
+        classLevel: material.class_level,
+        tags: material.tags || [],
+        isPublic: material.is_public,
+        fileUrl: material.file_url,
+        folderId: material.folder_id,
+        createdAt: new Date(material.created_at),
+        downloadCount: material.download_count || 0,
+      }));
+
+      setResults(convertedResults);
+    } catch (error) {
+      console.error('Error in fetchPublicMaterials:', error);
+      toast({
+        title: "Fejl",
+        description: "Der opstod en fejl ved søgning",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = () => {
-    let filtered = mockPublicMaterials.filter(material => 
-      material.isPublic &&
-      (searchTerm === "" || 
-       material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       material.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
-       material.author.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-
-    if (filterFormat && filterFormat !== "all") {
-      filtered = filtered.filter(material => material.format === filterFormat);
-    }
-    if (filterLanguage && filterLanguage !== "all") {
-      filtered = filtered.filter(material => material.language === filterLanguage);
-    }
-    if (filterDifficulty && filterDifficulty !== "all") {
-      filtered = filtered.filter(material => material.difficulty === filterDifficulty);
-    }
-
-    setResults(filtered);
     setHasSearched(true);
+    fetchPublicMaterials();
   };
+
+  // Load all public materials when modal opens
+  useEffect(() => {
+    if (open) {
+      setHasSearched(true);
+      fetchPublicMaterials();
+    }
+  }, [open]);
 
   const handleSaveMaterial = (material: FileData) => {
     // Create a copy with new ID for user's collection
@@ -105,6 +119,10 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
     };
     onSaveFile(newMaterial);
     onClose();
+    toast({
+      title: "Materiale gemt",
+      description: `"${material.title}" er blevet gemt til dine materialer`
+    });
   };
 
   return (
@@ -124,6 +142,7 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
                 placeholder="f.eks. grammatik, romantik, engelsk..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
 
@@ -178,8 +197,12 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
               </div>
             </div>
 
-            <Button onClick={handleSearch} className="w-full bg-blue-600 hover:bg-blue-700">
-              Søg materialer
+            <Button 
+              onClick={handleSearch} 
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={loading}
+            >
+              {loading ? "Søger..." : "Søg materialer"}
             </Button>
           </div>
 
@@ -190,7 +213,12 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
                 Søgeresultater ({results.length} materialer fundet)
               </h3>
               
-              {results.length === 0 ? (
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-2 text-gray-500">Søger efter materialer...</p>
+                </div>
+              ) : results.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">
                   Ingen materialer fundet. Prøv at ændre dine søgekriterier.
                 </p>
@@ -220,7 +248,7 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
                           
                           <div className="mt-2">
                             <p className="text-sm text-gray-600">
-                              Tags: {material.tags.join(", ")}
+                              Tags: {material.tags.length > 0 ? material.tags.join(", ") : "Ingen tags"}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
                               Downloadet {material.downloadCount} gange
