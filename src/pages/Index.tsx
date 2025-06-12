@@ -9,6 +9,7 @@ import { ProfileModal } from "@/components/ProfileModal";
 import { FileCard } from "@/components/FileCard";
 import { FolderCard } from "@/components/FolderCard";
 import { CreateFolderModal } from "@/components/CreateFolderModal";
+import { DocumentModal } from "@/components/DocumentModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMaterials, Material } from "@/hooks/useMaterials";
 import { useFolders, Folder } from "@/hooks/useFolders";
@@ -75,6 +76,7 @@ const Index = () => {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
 
   // Redirect to auth if not logged in

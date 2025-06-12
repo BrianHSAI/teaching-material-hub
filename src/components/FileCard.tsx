@@ -25,6 +25,11 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
     setIsDragging(false);
   };
 
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
   const getFileIcon = () => {
     switch (file.format) {
       case "pdf":
@@ -37,6 +42,8 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
         return <Video className="h-10 w-10 text-red-400 drop-shadow-lg" />;
       case "link":
         return <Globe className="h-10 w-10 text-green-400 drop-shadow-lg" />;
+      case "document":
+        return <FileText className="h-10 w-10 text-blue-400 drop-shadow-lg" />;
       default:
         return <FileText className="h-10 w-10 text-gray-400 drop-shadow-lg" />;
     }
@@ -65,11 +72,14 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
           </div>
         </div>
         
-        <div className="flex space-x-2">
+        <div className="flex space-x-2" onMouseDown={handleButtonClick}>
           <Button
             size="sm"
             variant="outline"
-            onClick={() => window.open(file.fileUrl, '_blank')}
+            onClick={(e) => {
+              handleButtonClick(e);
+              window.open(file.fileUrl, '_blank');
+            }}
             className="h-8 px-3 text-xs bg-background/50 border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
           >
             <Download className="h-4 w-4" />
@@ -81,6 +91,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
                 size="sm" 
                 variant="outline" 
                 className="h-8 px-3 bg-background/50 border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
+                onClick={handleButtonClick}
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
