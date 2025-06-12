@@ -77,6 +77,7 @@ const Index = () => {
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [isDragOverDesktop, setIsDragOverDesktop] = useState(false);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -158,6 +159,26 @@ const Index = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
+  };
+
+  // Desktop drag and drop handlers
+  const handleDesktopDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOverDesktop(true);
+  };
+
+  const handleDesktopDragLeave = (e: React.DragEvent) => {
+    // Only set to false if we're leaving the desktop area completely
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOverDesktop(false);
+    }
+  };
+
+  const handleDesktopDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOverDesktop(false);
+    const fileId = e.dataTransfer.getData("text/plain");
+    handleMoveFileToFolder(fileId, "desktop");
   };
 
   // Convert database types to legacy types for component compatibility
@@ -291,7 +312,16 @@ const Index = () => {
             {/* Desktop Area */}
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Mit skrivebord</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              <div 
+                className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 min-h-[200px] p-4 rounded-lg border-2 border-dashed transition-all duration-300 ${
+                  isDragOverDesktop 
+                    ? 'border-blue-400 bg-blue-50/50' 
+                    : 'border-gray-200 bg-transparent'
+                }`}
+                onDragOver={handleDesktopDragOver}
+                onDragLeave={handleDesktopDragLeave}
+                onDrop={handleDesktopDrop}
+              >
                 {/* Folders */}
                 {legacyFolders.map(folder => (
                   <FolderCard
@@ -314,6 +344,13 @@ const Index = () => {
                     folders={legacyFolders}
                   />
                 ))}
+
+                {/* Drop zone hint when dragging */}
+                {isDragOverDesktop && (
+                  <div className="col-span-full flex items-center justify-center py-8">
+                    <p className="text-blue-600 font-medium">Slip for at flytte til skrivebord</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

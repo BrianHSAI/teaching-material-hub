@@ -54,7 +54,16 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
     setFontSize(size);
     if (editorRef.current) {
       editorRef.current.style.fontSize = `${size}px`;
+      editorRef.current.focus();
+      // Apply font size to selected text or current cursor position
+      document.execCommand('fontSize', false, '7');
+      const fontElements = editorRef.current.querySelectorAll('font[size="7"]');
+      fontElements.forEach(element => {
+        element.removeAttribute('size');
+        (element as HTMLElement).style.fontSize = `${size}px`;
+      });
     }
+    updateContent();
   };
 
   const insertTable = () => {
@@ -105,11 +114,11 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
       <div className="flex flex-wrap items-center gap-4 pb-4 border-b">
         {/* Font Size */}
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium">Størrelse:</label>
+          <label className="text-sm font-medium text-foreground">Størrelse:</label>
           <select
             value={fontSize}
             onChange={(e) => handleFontSizeChange(e.target.value)}
-            className="px-2 py-1 border rounded text-sm"
+            className="px-3 py-2 border rounded text-sm bg-background text-foreground border-border focus:outline-none focus:ring-2 focus:ring-primary min-w-[80px]"
             onMouseDown={(e) => e.stopPropagation()}
           >
             <option value="12">12px</option>
@@ -161,7 +170,7 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
       <div
         ref={editorRef}
         contentEditable
-        className="min-h-[300px] p-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+        className="min-h-[300px] p-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
         style={{ 
           fontSize: `${fontSize}px`,
           direction: 'ltr',
