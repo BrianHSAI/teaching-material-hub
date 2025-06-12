@@ -1,5 +1,5 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Bold, Italic, Underline, List, Table } from "lucide-react";
@@ -16,8 +16,19 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
   const [activeFormats, setActiveFormats] = useState<string[]>([]);
   const editorRef = useRef<HTMLDivElement>(null);
 
+  // Set initial content when value changes
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value;
+    }
+  }, [value]);
+
   const handleFormatChange = (formats: string[]) => {
     setActiveFormats(formats);
+    
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
     
     formats.forEach(format => {
       switch (format) {
@@ -47,6 +58,10 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
   };
 
   const insertTable = () => {
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+    
     const tableHTML = `
       <table border="1" style="border-collapse: collapse; width: 100%; margin: 10px 0;">
         <tr>
@@ -74,6 +89,16 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
     updateContent();
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Prevent drag behavior when typing
+    e.stopPropagation();
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Prevent drag behavior when clicking in editor
+    e.stopPropagation();
+  };
+
   return (
     <Card className="p-4 space-y-4">
       {/* Toolbar */}
@@ -85,6 +110,7 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
             value={fontSize}
             onChange={(e) => handleFontSizeChange(e.target.value)}
             className="px-2 py-1 border rounded text-sm"
+            onMouseDown={(e) => e.stopPropagation()}
           >
             <option value="12">12px</option>
             <option value="14">14px</option>
@@ -104,16 +130,16 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
           onValueChange={handleFormatChange}
           className="flex gap-1"
         >
-          <ToggleGroupItem value="bold" size="sm">
+          <ToggleGroupItem value="bold" size="sm" onMouseDown={(e) => e.stopPropagation()}>
             <Bold className="h-4 w-4" />
           </ToggleGroupItem>
-          <ToggleGroupItem value="italic" size="sm">
+          <ToggleGroupItem value="italic" size="sm" onMouseDown={(e) => e.stopPropagation()}>
             <Italic className="h-4 w-4" />
           </ToggleGroupItem>
-          <ToggleGroupItem value="underline" size="sm">
+          <ToggleGroupItem value="underline" size="sm" onMouseDown={(e) => e.stopPropagation()}>
             <Underline className="h-4 w-4" />
           </ToggleGroupItem>
-          <ToggleGroupItem value="list" size="sm">
+          <ToggleGroupItem value="list" size="sm" onMouseDown={(e) => e.stopPropagation()}>
             <List className="h-4 w-4" />
           </ToggleGroupItem>
         </ToggleGroup>
@@ -124,6 +150,7 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
           variant="outline"
           size="sm"
           onClick={insertTable}
+          onMouseDown={(e) => e.stopPropagation()}
         >
           <Table className="h-4 w-4 mr-2" />
           Indsæt tabel
@@ -135,9 +162,15 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
         ref={editorRef}
         contentEditable
         className="min-h-[300px] p-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-        style={{ fontSize: `${fontSize}px` }}
+        style={{ 
+          fontSize: `${fontSize}px`,
+          direction: 'ltr',
+          textAlign: 'left'
+        }}
         onInput={handleInput}
-        dangerouslySetInnerHTML={{ __html: value }}
+        onKeyDown={handleKeyDown}
+        onMouseDown={handleMouseDown}
+        suppressContentEditableWarning={true}
         data-placeholder={placeholder}
       />
     </Card>
