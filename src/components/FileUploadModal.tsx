@@ -28,7 +28,7 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
     classLevel: "",
     tags: "",
     isPublic: true,
-    folderId: "",
+    folderId: "desktop",
     fileUrl: "",
     gdprCompliant: false,
   });
@@ -50,7 +50,7 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
       ...formData,
       id: "",
       tags: formData.tags.split(",").map(tag => tag.trim()).filter(tag => tag),
-      folderId: formData.folderId || undefined,
+      folderId: formData.folderId === "desktop" ? undefined : formData.folderId,
       createdAt: new Date(),
       downloadCount: 0,
       fileUrl: formData.fileUrl
@@ -70,7 +70,7 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
       classLevel: "",
       tags: "",
       isPublic: true,
-      folderId: "",
+      folderId: "desktop",
       fileUrl: "",
       gdprCompliant: false,
     });

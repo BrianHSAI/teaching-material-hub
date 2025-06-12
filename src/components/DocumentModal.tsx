@@ -20,7 +20,7 @@ export const DocumentModal = ({ open, onClose, onSave, folders, editingDocument 
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [content, setContent] = useState("");
-  const [selectedFolder, setSelectedFolder] = useState<string>("");
+  const [selectedFolder, setSelectedFolder] = useState<string>("desktop");
   const [genre, setGenre] = useState("");
   const [language, setLanguage] = useState("Dansk");
   const [difficulty, setDifficulty] = useState("Begynder");
@@ -31,7 +31,7 @@ export const DocumentModal = ({ open, onClose, onSave, folders, editingDocument 
       setTitle(editingDocument.title);
       setAuthor(editingDocument.author);
       setContent(editingDocument.fileUrl || "");
-      setSelectedFolder(editingDocument.folderId || "");
+      setSelectedFolder(editingDocument.folderId || "desktop");
       setGenre(editingDocument.genre);
       setLanguage(editingDocument.language);
       setDifficulty(editingDocument.difficulty);
@@ -41,7 +41,7 @@ export const DocumentModal = ({ open, onClose, onSave, folders, editingDocument 
       setTitle("");
       setAuthor("");
       setContent("");
-      setSelectedFolder("");
+      setSelectedFolder("desktop");
       setGenre("");
       setLanguage("Dansk");
       setDifficulty("Begynder");
@@ -63,7 +63,7 @@ export const DocumentModal = ({ open, onClose, onSave, folders, editingDocument 
       tags: [],
       isPublic: false,
       fileUrl: content,
-      folderId: selectedFolder || undefined
+      folderId: selectedFolder === "desktop" ? undefined : selectedFolder
     };
 
     onSave(documentData);
@@ -119,7 +119,7 @@ export const DocumentModal = ({ open, onClose, onSave, folders, editingDocument 
                   <SelectValue placeholder="Vælg mappe (valgfrit)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Gem på skrivebord</SelectItem>
+                  <SelectItem value="desktop">Gem på skrivebord</SelectItem>
                   {folders.map(folder => (
                     <SelectItem key={folder.id} value={folder.id}>
                       {folder.name}
