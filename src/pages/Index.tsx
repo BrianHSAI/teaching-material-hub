@@ -68,8 +68,8 @@ const convertFolderToFolderData = (folder: Folder): FolderData => ({
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
-  const { materials, loading: materialsLoading, createMaterial, updateMaterial } = useMaterials();
-  const { folders, loading: foldersLoading, createFolder } = useFolders();
+  const { materials, loading: materialsLoading, createMaterial, updateMaterial, deleteMaterial } = useMaterials();
+  const { folders, loading: foldersLoading, createFolder, deleteFolder } = useFolders();
   
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
@@ -128,6 +128,14 @@ const Index = () => {
     await updateMaterial(fileId, { folder_id: folderId === "desktop" ? null : folderId });
   };
 
+  const handleDeleteFile = async (fileId: string) => {
+    await deleteMaterial(fileId);
+  };
+
+  const handleDeleteFolder = async (folderId: string) => {
+    await deleteFolder(folderId);
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
@@ -180,7 +188,7 @@ const Index = () => {
                         }}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        Upload materiale
+                        Tilføj materiale
                       </button>
                       <button
                         onClick={() => {
@@ -234,12 +242,12 @@ const Index = () => {
             <div className="bg-white rounded-lg shadow-sm p-8 max-w-md mx-auto">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Velkommen til dine undervisningsmaterialer!</h2>
               <p className="text-gray-600 mb-6">
-                Kom i gang ved at uploade dit første materiale eller oprette en mappe til at organisere dine filer.
+                Kom i gang ved at tilføje dit første materiale eller oprette en mappe til at organisere dine filer.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button onClick={() => setShowUploadModal(true)} className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="h-4 w-4 mr-2" />
-                  Upload materiale
+                  Tilføj materiale
                 </Button>
                 <Button variant="outline" onClick={() => setShowCreateFolderModal(true)}>
                   Opret mappe
@@ -260,6 +268,8 @@ const Index = () => {
                     folder={folder}
                     files={legacyFiles.filter(file => file.folderId === folder.id)}
                     onMoveFile={handleMoveFileToFolder}
+                    onDeleteFile={handleDeleteFile}
+                    onDeleteFolder={handleDeleteFolder}
                   />
                 ))}
                 
@@ -269,6 +279,7 @@ const Index = () => {
                     key={file.id}
                     file={file}
                     onMoveToFolder={handleMoveFileToFolder}
+                    onDelete={handleDeleteFile}
                     folders={legacyFolders}
                   />
                 ))}

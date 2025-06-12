@@ -80,6 +80,31 @@ export const useFolders = () => {
     }
   };
 
+  const deleteFolder = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('folders')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user?.id); // Ensure user can only delete their own folders
+
+      if (error) throw error;
+
+      setFolders(prev => prev.filter(f => f.id !== id));
+      toast({
+        title: "Mappe slettet",
+        description: "Mappen er blevet slettet"
+      });
+    } catch (error) {
+      console.error('Error deleting folder:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke slette mappen",
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     fetchFolders();
   }, [user]);
@@ -88,6 +113,7 @@ export const useFolders = () => {
     folders,
     loading,
     createFolder,
+    deleteFolder,
     refetch: fetchFolders
   };
 };

@@ -3,16 +3,17 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { FileText, Download, MoreVertical, FolderOpen, Video, Globe } from "lucide-react";
+import { FileText, Download, MoreVertical, FolderOpen, Video, Globe, Trash2 } from "lucide-react";
 import { FileData, FolderData } from "@/pages/Index";
 
 interface FileCardProps {
   file: FileData;
   onMoveToFolder: (fileId: string, folderId: string) => void;
+  onDelete: (fileId: string) => void;
   folders: FolderData[];
 }
 
-export const FileCard = ({ file, onMoveToFolder, folders }: FileCardProps) => {
+export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardProps) => {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -74,30 +75,45 @@ export const FileCard = ({ file, onMoveToFolder, folders }: FileCardProps) => {
             <Download className="h-4 w-4" />
           </Button>
           
-          {folders.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="h-8 px-3 bg-background/50 border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-8 px-3 bg-background/50 border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="glass-effect border-border/50">
+              {folders.length > 0 && folders.map(folder => (
+                <DropdownMenuItem
+                  key={folder.id}
+                  onClick={() => onMoveToFolder(file.id, folder.id)}
+                  className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
                 >
-                  <FolderOpen className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="glass-effect border-border/50">
-                {folders.map(folder => (
-                  <DropdownMenuItem
-                    key={folder.id}
-                    onClick={() => onMoveToFolder(file.id, folder.id)}
-                    className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
-                  >
-                    Flyt til {folder.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                  <FolderOpen className="h-4 w-4 mr-2" />
+                  Flyt til {folder.name}
+                </DropdownMenuItem>
+              ))}
+              {file.folderId && (
+                <DropdownMenuItem
+                  onClick={() => onMoveToFolder(file.id, "desktop")}
+                  className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+                >
+                  <FolderOpen className="h-4 w-4 mr-2" />
+                  Flyt til skrivebord
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                onClick={() => onDelete(file.id)}
+                className="hover:bg-red-500/20 focus:bg-red-500/20 transition-colors text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Slet materiale
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </Card>

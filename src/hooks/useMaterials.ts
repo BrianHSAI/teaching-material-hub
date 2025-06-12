@@ -30,10 +30,17 @@ export const useMaterials = () => {
   const { toast } = useToast();
 
   const fetchMaterials = async () => {
+    if (!user) {
+      setMaterials([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('materials')
         .select('*')
+        .eq('user_id', user.id)  // Only fetch user's own materials
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -89,6 +96,7 @@ export const useMaterials = () => {
         .from('materials')
         .update(updates)
         .eq('id', id)
+        .eq('user_id', user?.id) // Ensure user can only update their own materials
         .select()
         .single();
 
@@ -106,6 +114,31 @@ export const useMaterials = () => {
     }
   };
 
+  const deleteMaterial = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('materials')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user?.id); // Ensure user can only delete their own materials
+
+      if (error) throw error;
+
+      setMaterials(prev => prev.filter(m => m.id !== id));
+      toast({
+        title: "Materiale slettet",
+        description: "Materialet er blevet slettet"
+      });
+    } catch (error) {
+      console.error('Error deleting material:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke slette materialet",
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     fetchMaterials();
   }, [user]);
@@ -115,6 +148,7 @@ export const useMaterials = () => {
     loading,
     createMaterial,
     updateMaterial,
+    deleteMaterial,
     refetch: fetchMaterials
   };
 };
