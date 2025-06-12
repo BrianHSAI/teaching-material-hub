@@ -25,7 +25,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
     setIsDragging(false);
   };
 
-  const handleButtonClick = (e: React.MouseEvent) => {
+  const stopPropagation = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
   };
@@ -72,12 +72,12 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
           </div>
         </div>
         
-        <div className="flex space-x-2" onMouseDown={handleButtonClick}>
+        <div className="flex space-x-2" onMouseDown={stopPropagation} onDragStart={stopPropagation}>
           <Button
             size="sm"
             variant="outline"
             onClick={(e) => {
-              handleButtonClick(e);
+              stopPropagation(e);
               window.open(file.fileUrl, '_blank');
             }}
             className="h-8 px-3 text-xs bg-background/50 border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
@@ -91,7 +91,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
                 size="sm" 
                 variant="outline" 
                 className="h-8 px-3 bg-background/50 border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
-                onClick={handleButtonClick}
+                onClick={stopPropagation}
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
