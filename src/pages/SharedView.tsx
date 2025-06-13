@@ -24,17 +24,20 @@ interface SharedFolder {
 }
 
 const SharedView = () => {
-  const { type, id } = useParams();
+  const { id } = useParams();
   const [data, setData] = useState<SharedFile | SharedFolder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Determine if this is a folder or file based on the URL path
+  const isFolder = window.location.pathname.includes('/shared/folder/');
 
   useEffect(() => {
     const fetchSharedData = async () => {
       if (!id) return;
 
       try {
-        if (type === "folder") {
+        if (isFolder) {
           // Fetch folder and its files
           const { data: folderData, error: folderError } = await supabase
             .from('folders')
@@ -78,7 +81,7 @@ const SharedView = () => {
     };
 
     fetchSharedData();
-  }, [type, id]);
+  }, [id, isFolder]);
 
   const handleDownload = async (file: SharedFile) => {
     // Increment download count
@@ -143,7 +146,7 @@ const SharedView = () => {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {type === "folder" ? (
+        {isFolder ? (
           <div className="space-y-6">
             <div className="flex items-center space-x-4">
               <Folder className="h-8 w-8" style={{ color: (data as SharedFolder).color }} />
