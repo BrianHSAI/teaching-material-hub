@@ -1,156 +1,297 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Search, Download, Globe, FileText, Video } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileData } from "@/pages/Index";
-import { useMaterials } from "@/hooks/useMaterials";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface SearchModalProps {
   open: boolean;
   onClose: () => void;
-  onSaveFile: (file: FileData) => void;
+  onSaveFile: (fileData: FileData) => void;
 }
 
 export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState<FileData[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const { materials } = useMaterials();
+  const [filterFormat, setFilterFormat] = useState("all");
+  const [filterLanguage, setFilterLanguage] = useState("all");
+  const [filterDifficulty, setFilterDifficulty] = useState("all");
+  const [results, setResults] = useState<FileData[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setSearchResults([]);
+  const fetchPublicMaterials = async () => {
+    // Don't search if no criteria are provided
+    if (!searchTerm && filterFormat === "all" && filterLanguage === "all" && filterDifficulty === "all") {
+      toast({
+        title: "Søgekriterie påkrævet",
+        description: "Indtast mindst ét søgekriterie for at søge",
+        variant: "destructive"
+      });
       return;
     }
 
-    setIsSearching(true);
-    
-    // Search through user's materials
-    const filteredMaterials = materials.filter(material => {
-      const searchLower = searchTerm.toLowerCase();
-      
-      // Search in title, author, genre, language, difficulty, class_level, and tags
-      return (
-        material.title.toLowerCase().includes(searchLower) ||
-        material.author.toLowerCase().includes(searchLower) ||
-        material.genre.toLowerCase().includes(searchLower) ||
-        material.language.toLowerCase().includes(searchLower) ||
-        material.difficulty.toLowerCase().includes(searchLower) ||
-        material.class_level.toLowerCase().includes(searchLower) ||
-        (material.source && material.source.toLowerCase().includes(searchLower)) ||
-        material.tags.some(tag => tag.toLowerCase().includes(searchLower))
-      );
-    });
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('materials')
+        .select('*')
+        .eq('is_public', true);
 
-    // Convert to FileData format
-    const results: FileData[] = filteredMaterials.map(material => ({
-      id: material.id,
-      title: material.title,
-      author: material.author,
-      source: material.source,
-      format: material.format,
-      genre: material.genre,
-      language: material.language,
-      difficulty: material.difficulty,
-      classLevel: material.class_level,
-      tags: material.tags,
-      isPublic: material.is_public,
-      fileUrl: material.file_url,
-      folderId: material.folder_id,
-      createdAt: new Date(material.created_at),
-      downloadCount: material.download_count
-    }));
+      // Apply search term filter
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,author.ilike.%${searchTerm}%,tags.cs.{${searchTerm}}`);
+      }
 
-    setSearchResults(results);
-    setIsSearching(false);
-  }, [searchTerm, materials]);
+      // Apply format filter
+      if (filterFormat && filterFormat !== "all") {
+        query = query.eq('format', filterFormat);
+      }
 
-  const getFileIcon = (format: string) => {
-    switch (format) {
-      case "pdf":
-        return <FileText className="h-6 w-6 text-red-400" />;
-      case "word":
-        return <FileText className="h-6 w-6 text-blue-400" />;
-      case "video":
-        return <Video className="h-6 w-6 text-purple-400" />;
-      case "youtube":
-        return <Video className="h-6 w-6 text-red-400" />;
-      case "link":
-        return <Globe className="h-6 w-6 text-green-400" />;
-      case "document":
-        return <FileText className="h-6 w-6 text-blue-400" />;
-      default:
-        return <FileText className="h-6 w-6 text-gray-400" />;
+      // Apply language filter  
+      if (filterLanguage && filterLanguage !== "all") {
+        query = query.eq('language', filterLanguage);
+      }
+
+      // Apply difficulty filter
+      if (filterDifficulty && filterDifficulty !== "all") {
+        query = query.eq('difficulty', filterDifficulty);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching public materials:', error);
+        toast({
+          title: "Fejl",
+          description: "Kunne ikke hente offentlige materialer",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Convert database materials to FileData format
+      const convertedResults: FileData[] = (data || []).map(material => ({
+        id: material.id,
+        title: material.title,
+        author: material.author,
+        source: material.source,
+        format: material.format,
+        genre: material.genre,
+        language: material.language,
+        difficulty: material.difficulty,
+        classLevel: material.class_level,
+        tags: material.tags || [],
+        isPublic: material.is_public,
+        fileUrl: material.file_url,
+        folderId: material.folder_id,
+        createdAt: new Date(material.created_at),
+        downloadCount: material.download_count || 0,
+      }));
+
+      setResults(convertedResults);
+    } catch (error) {
+      console.error('Error in fetchPublicMaterials:', error);
+      toast({
+        title: "Fejl",
+        description: "Der opstod en fejl ved søgning",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleSearch = () => {
+    setHasSearched(true);
+    fetchPublicMaterials();
+  };
+
+  const handleSaveMaterial = (material: FileData) => {
+    // Create a copy with new ID for user's collection
+    const newMaterial = {
+      ...material,
+      id: Date.now().toString(),
+      folderId: undefined, // Save to desktop by default
+    };
+    onSaveFile(newMaterial);
+    onClose();
+    toast({
+      title: "Materiale gemt",
+      description: `"${material.title}" er blevet gemt til dine materialer`
+    });
+  };
+
+  // Reset search when modal closes
+  const handleClose = () => {
+    setSearchTerm("");
+    setFilterFormat("all");
+    setFilterLanguage("all");
+    setFilterDifficulty("all");
+    setResults([]);
+    setHasSearched(false);
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh]">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Søg i dine materialer</DialogTitle>
+          <DialogTitle>Søg i offentlige undervisningsmaterialer</DialogTitle>
         </DialogHeader>
-
+        
         <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Søg efter titel, forfatter, emne, tags..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          {/* Search Form */}
+          <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+            <div>
+              <Label htmlFor="search">Søg efter titel, forfatter eller tags</Label>
+              <Input
+                id="search"
+                placeholder="f.eks. grammatik, romantik, engelsk..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="format-filter">Format</Label>
+                <Select value={filterFormat} onValueChange={setFilterFormat}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Alle formater" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle formater</SelectItem>
+                    <SelectItem value="pdf">PDF</SelectItem>
+                    <SelectItem value="word">Word</SelectItem>
+                    <SelectItem value="link">Link</SelectItem>
+                    <SelectItem value="youtube">YouTube</SelectItem>
+                    <SelectItem value="video">Video</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="language-filter">Sprog</Label>
+                <Select value={filterLanguage} onValueChange={setFilterLanguage}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Alle sprog" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle sprog</SelectItem>
+                    <SelectItem value="dansk">Dansk</SelectItem>
+                    <SelectItem value="engelsk">Engelsk</SelectItem>
+                    <SelectItem value="tysk">Tysk</SelectItem>
+                    <SelectItem value="fransk">Fransk</SelectItem>
+                    <SelectItem value="spansk">Spansk</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="difficulty-filter">Sværhedsgrad</Label>
+                <Select value={filterDifficulty} onValueChange={setFilterDifficulty}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Alle sværhedsgrader" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle sværhedsgrader</SelectItem>
+                    <SelectItem value="let">Let</SelectItem>
+                    <SelectItem value="mellem">Mellem</SelectItem>
+                    <SelectItem value="svær">Svær</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Button 
+              onClick={handleSearch} 
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={loading}
+            >
+              {loading ? "Søger..." : "Søg materialer"}
+            </Button>
           </div>
 
-          <div className="max-h-[400px] overflow-y-auto space-y-3">
-            {isSearching && (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-2 text-gray-600">Søger...</p>
-              </div>
-            )}
-
-            {!isSearching && searchTerm.trim() !== "" && searchResults.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-gray-600">Ingen materialer fundet for "{searchTerm}"</p>
-              </div>
-            )}
-
-            {searchResults.map((file) => (
-              <Card key={file.id} className="p-4">
-                <div className="flex items-center space-x-4">
-                  {getFileIcon(file.format)}
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{file.title}</h3>
-                    <p className="text-sm text-gray-600">{file.author}</p>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                        {file.format}
-                      </span>
-                      <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                        {file.genre}
-                      </span>
-                      {file.tags.map((tag, index) => (
-                        <span key={index} className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => window.open(file.fileUrl, '_blank')}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Åbn
-                  </Button>
+          {/* Search Results */}
+          {hasSearched && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">
+                Søgeresultater ({results.length} materialer fundet)
+              </h3>
+              
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-2 text-gray-500">Søger efter materialer...</p>
                 </div>
-              </Card>
-            ))}
-          </div>
+              ) : results.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">
+                  Ingen materialer fundet. Prøv at ændre dine søgekriterier.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {results.map(material => (
+                    <div key={material.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="text-lg font-semibold text-gray-900">{material.title}</h4>
+                          <p className="text-sm text-gray-600">Af {material.author}</p>
+                          
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                              {material.format}
+                            </span>
+                            <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                              {material.language}
+                            </span>
+                            <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
+                              {material.difficulty}
+                            </span>
+                            <span className="inline-block bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">
+                              {material.classLevel}
+                            </span>
+                          </div>
+                          
+                          <div className="mt-2">
+                            <p className="text-sm text-gray-600">
+                              Tags: {material.tags.length > 0 ? material.tags.join(", ") : "Ingen tags"}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Downloadet {material.downloadCount} gange
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="ml-4 flex flex-col space-y-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleSaveMaterial(material)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            Gem til mine materialer
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => window.open(material.fileUrl, '_blank')}
+                          >
+                            Vis materiale
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

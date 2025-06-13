@@ -78,7 +78,6 @@ const Index = () => {
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [isDragOverDesktop, setIsDragOverDesktop] = useState(false);
-  const [editingDocument, setEditingDocument] = useState<FileData | null>(null);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -186,32 +185,6 @@ const Index = () => {
   const legacyFiles = materials.map(convertMaterialToFileData);
   const legacyFolders = folders.map(convertFolderToFolderData);
   const desktopFiles = legacyFiles.filter(file => !file.folderId);
-
-  const handleOpenDocument = (document: FileData) => {
-    setEditingDocument(document);
-    setShowDocumentModal(true);
-  };
-
-  const handleSaveEditedDocument = async (documentData: Omit<FileData, 'id' | 'createdAt' | 'downloadCount'>) => {
-    if (editingDocument) {
-      await updateMaterial(editingDocument.id, {
-        title: documentData.title,
-        author: documentData.author,
-        source: documentData.source,
-        format: documentData.format,
-        genre: documentData.genre,
-        language: documentData.language,
-        difficulty: documentData.difficulty,
-        class_level: documentData.classLevel,
-        tags: documentData.tags,
-        is_public: documentData.isPublic,
-        file_url: documentData.fileUrl || "",
-        folder_id: documentData.folderId
-      });
-    }
-    setEditingDocument(null);
-    setShowDocumentModal(false);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -358,7 +331,6 @@ const Index = () => {
                     onMoveFile={handleMoveFileToFolder}
                     onDeleteFile={handleDeleteFile}
                     onDeleteFolder={handleDeleteFolder}
-                    onOpenDocument={handleOpenDocument}
                   />
                 ))}
                 
@@ -369,7 +341,6 @@ const Index = () => {
                     file={file}
                     onMoveToFolder={handleMoveFileToFolder}
                     onDelete={handleDeleteFile}
-                    onOpenDocument={handleOpenDocument}
                     folders={legacyFolders}
                   />
                 ))}
@@ -414,13 +385,9 @@ const Index = () => {
 
       <DocumentModal
         open={showDocumentModal}
-        onClose={() => {
-          setEditingDocument(null);
-          setShowDocumentModal(false);
-        }}
-        onSave={editingDocument ? handleSaveEditedDocument : handleCreateDocument}
+        onClose={() => setShowDocumentModal(false)}
+        onSave={handleCreateDocument}
         folders={legacyFolders}
-        editingDocument={editingDocument}
       />
     </div>
   );
