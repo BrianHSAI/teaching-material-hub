@@ -3,9 +3,10 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Folder, FolderOpen, MoreVertical, Trash2 } from "lucide-react";
+import { Folder, FolderOpen, MoreVertical, Trash2, Share } from "lucide-react";
 import { FileData, FolderData } from "@/pages/Index";
 import { FileCard } from "./FileCard";
+import { useToast } from "@/hooks/use-toast";
 
 interface FolderCardProps {
   folder: FolderData;
@@ -13,11 +14,13 @@ interface FolderCardProps {
   onMoveFile: (fileId: string, folderId: string) => void;
   onDeleteFile: (fileId: string) => void;
   onDeleteFolder: (folderId: string) => void;
+  onOpenDocument?: (file: FileData) => void;
 }
 
-export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFolder }: FolderCardProps) => {
+export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFolder, onOpenDocument }: FolderCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const { toast } = useToast();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -33,6 +36,15 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
     setIsDragOver(false);
     const fileId = e.dataTransfer.getData("text/plain");
     onMoveFile(fileId, folder.id);
+  };
+
+  const handleShareFolder = async () => {
+    const shareUrl = `${window.location.origin}/shared/folder/${folder.id}`;
+    await navigator.clipboard.writeText(shareUrl);
+    toast({
+      title: "Link kopieret",
+      description: "Mappens delings-link er kopieret til udklipsholderen"
+    });
   };
 
   return (
@@ -63,6 +75,16 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="glass-effect border-border/50">
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShareFolder();
+                }}
+                className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+              >
+                <Share className="h-4 w-4 mr-2" />
+                Del mappe
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
@@ -98,6 +120,7 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
                 file={file}
                 onMoveToFolder={onMoveFile}
                 onDelete={onDeleteFile}
+                onOpenDocument={onOpenDocument}
                 folders={[]}
               />
             </div>

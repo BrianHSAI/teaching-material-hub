@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Bold, Italic, Underline, List, Table } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { TableInsertModal } from "./TableInsertModal";
 
 interface TextEditorProps {
   value: string;
@@ -14,6 +15,7 @@ interface TextEditorProps {
 export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold her..." }: TextEditorProps) => {
   const [fontSize, setFontSize] = useState("16");
   const [activeFormats, setActiveFormats] = useState<string[]>([]);
+  const [showTableModal, setShowTableModal] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
 
   // Set initial content when value changes
@@ -66,23 +68,22 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
     updateContent();
   };
 
-  const insertTable = () => {
+  const insertTable = (rows: number, cols: number) => {
     if (editorRef.current) {
       editorRef.current.focus();
     }
     
-    const tableHTML = `
-      <table border="1" style="border-collapse: collapse; width: 100%; margin: 10px 0;">
-        <tr>
-          <td style="padding: 8px; border: 1px solid #ddd;">Celle 1</td>
-          <td style="padding: 8px; border: 1px solid #ddd;">Celle 2</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px; border: 1px solid #ddd;">Celle 3</td>
-          <td style="padding: 8px; border: 1px solid #ddd;">Celle 4</td>
-        </tr>
-      </table>
-    `;
+    let tableHTML = `<table border="1" style="border-collapse: collapse; width: 100%; margin: 10px 0;">`;
+    
+    for (let i = 0; i < rows; i++) {
+      tableHTML += '<tr>';
+      for (let j = 0; j < cols; j++) {
+        tableHTML += `<td style="padding: 8px; border: 1px solid #ddd;">Celle ${i * cols + j + 1}</td>`;
+      }
+      tableHTML += '</tr>';
+    }
+    
+    tableHTML += '</table>';
     
     document.execCommand("insertHTML", false, tableHTML);
     updateContent();
@@ -158,7 +159,7 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
           type="button"
           variant="outline"
           size="sm"
-          onClick={insertTable}
+          onClick={() => setShowTableModal(true)}
           onMouseDown={(e) => e.stopPropagation()}
         >
           <Table className="h-4 w-4 mr-2" />
@@ -181,6 +182,12 @@ export const TextEditor = ({ value, onChange, placeholder = "Skriv dit indhold h
         onMouseDown={handleMouseDown}
         suppressContentEditableWarning={true}
         data-placeholder={placeholder}
+      />
+
+      <TableInsertModal
+        open={showTableModal}
+        onClose={() => setShowTableModal(false)}
+        onInsert={insertTable}
       />
     </Card>
   );

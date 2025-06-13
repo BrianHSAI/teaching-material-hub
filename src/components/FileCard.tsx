@@ -3,18 +3,23 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { FileText, Download, MoreVertical, FolderOpen, Video, Globe, Trash2 } from "lucide-react";
+import { FileText, Download, MoreVertical, FolderOpen, Video, Globe, Trash2, Eye, EyeOff, Share, ExternalLink } from "lucide-react";
 import { FileData, FolderData } from "@/pages/Index";
+import { useMaterials } from "@/hooks/useMaterials";
+import { useToast } from "@/hooks/use-toast";
 
 interface FileCardProps {
   file: FileData;
   onMoveToFolder: (fileId: string, folderId: string) => void;
   onDelete: (fileId: string) => void;
+  onOpenDocument?: (file: FileData) => void;
   folders: FolderData[];
 }
 
-export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardProps) => {
+export const FileCard = ({ file, onMoveToFolder, onDelete, onOpenDocument, folders }: FileCardProps) => {
   const [isDragging, setIsDragging] = useState(false);
+  const { updateMaterial } = useMaterials();
+  const { toast } = useToast();
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData("text/plain", file.id);
@@ -25,9 +30,29 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
     setIsDragging(false);
   };
 
-  const stopPropagation = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleToggleVisibility = async () => {
+    await updateMaterial(file.id, { is_public: !file.isPublic });
+    toast({
+      title: "Synlighed ændret",
+      description: file.isPublic ? "Materialet er nu privat" : "Materialet er nu offentligt"
+    });
+  };
+
+  const handleShareFile = async () => {
+    const shareUrl = `${window.location.origin}/shared/${file.id}`;
+    await navigator.clipboard.writeText(shareUrl);
+    toast({
+      title: "Link kopieret",
+      description: "Delings-linket er kopieret til udklipsholderen"
+    });
+  };
+
+  const handleOpenFile = () => {
+    if (file.format === "document" && onOpenDocument) {
+      onOpenDocument(file);
+    } else {
+      window.open(file.fileUrl, '_blank');
+    }
   };
 
   const getFileIcon = () => {
@@ -69,6 +94,15 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
             <span className="inline-block bg-primary/20 text-primary text-xs px-2 py-1 rounded-full font-medium border border-primary/30">
               {file.format}
             </span>
+            {file.isPublic ? (
+              <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                Offentlig
+              </span>
+            ) : (
+              <span className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
+                Privat
+              </span>
+            )}
           </div>
         </div>
         
@@ -79,7 +113,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
-              window.open(file.fileUrl, '_blank');
+              handleOpenFile();
             }}
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -87,7 +121,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
             }}
             className="h-8 px-3 text-xs bg-background/50 border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
           >
-            <Download className="h-4 w-4" />
+            {file.format === "document" ? <ExternalLink className="h-4 w-4" /> : <Download className="h-4 w-4" />}
           </Button>
           
           <DropdownMenu>
@@ -109,6 +143,37 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="glass-effect border-border/50">
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleToggleVisibility();
+                }}
+                className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+              >
+                {file.isPublic ? (
+                  <>
+                    <EyeOff className="h-4 w-4 mr-2" />
+                    Gør privat
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Gør offentlig
+                  </>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleShareFile();
+                }}
+                className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+              >
+                <Share className="h-4 w-4 mr-2" />
+                Del fil
+              </DropdownMenuItem>
               {folders.length > 0 && folders.map(folder => (
                 <DropdownMenuItem
                   key={folder.id}
