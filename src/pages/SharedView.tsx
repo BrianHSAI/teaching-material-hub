@@ -34,32 +34,55 @@ const SharedView = () => {
 
   useEffect(() => {
     const fetchSharedData = async () => {
-      if (!id) return;
+      if (!id) {
+        setError("Ugyldigt link - mangler ID");
+        setLoading(false);
+        return;
+      }
 
       try {
         if (isFolder) {
-          // Fetch folder and its files
+          console.log("Fetching folder data for ID:", id);
+          
+          // Fetch folder first
           const { data: folderData, error: folderError } = await supabase
             .from('folders')
             .select('*')
             .eq('id', id)
             .single();
 
-          if (folderError) throw folderError;
+          if (folderError) {
+            console.error("Folder error:", folderError);
+            throw new Error("Mappen blev ikke fundet");
+          }
 
+          console.log("Folder data:", folderData);
+
+          // Then fetch public files in this folder
           const { data: filesData, error: filesError } = await supabase
             .from('materials')
             .select('*')
             .eq('folder_id', id)
             .eq('is_public', true);
 
-          if (filesError) throw filesError;
+          if (filesError) {
+            console.error("Files error:", filesError);
+            throw new Error("Kunne ikke hente filer fra mappen");
+          }
+
+          console.log("Files data:", filesData);
+
+          if (!filesData || filesData.length === 0) {
+            throw new Error("Ingen offentlige filer fundet i denne mappe");
+          }
 
           setData({
             ...folderData,
             files: filesData || []
           } as SharedFolder);
         } else {
+          console.log("Fetching file data for ID:", id);
+          
           // Fetch single file
           const { data: fileData, error: fileError } = await supabase
             .from('materials')
@@ -68,13 +91,17 @@ const SharedView = () => {
             .eq('is_public', true)
             .single();
 
-          if (fileError) throw fileError;
+          if (fileError) {
+            console.error("File error:", fileError);
+            throw new Error("Filen blev ikke fundet eller er ikke offentlig");
+          }
 
+          console.log("File data:", fileData);
           setData(fileData as SharedFile);
         }
-      } catch (err) {
-        setError("Indholdet blev ikke fundet eller er ikke tilgængeligt");
-        console.error(err);
+      } catch (err: any) {
+        console.error("Fetch error:", err);
+        setError(err.message || "Indholdet blev ikke fundet eller er ikke tilgængeligt");
       } finally {
         setLoading(false);
       }
@@ -85,10 +112,14 @@ const SharedView = () => {
 
   const handleDownload = async (file: SharedFile) => {
     // Increment download count
-    await supabase
-      .from('materials')
-      .update({ download_count: file.download_count + 1 })
-      .eq('id', file.id);
+    try {
+      await supabase
+        .from('materials')
+        .update({ download_count: file.download_count + 1 })
+        .eq('id', file.id);
+    } catch (error) {
+      console.error("Error updating download count:", error);
+    }
 
     // Open file
     window.open(file.file_url, '_blank');
@@ -129,7 +160,10 @@ const SharedView = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <Card className="p-8 max-w-md text-center">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Indhold ikke fundet</h2>
-          <p className="text-gray-600">{error || "Det delte indhold kunne ikke findes."}</p>
+          <p className="text-gray-600 mb-4">{error || "Det delte indhold kunne ikke findes."}</p>
+          <p className="text-sm text-gray-500">
+            Kontroller at linket er korrekt, og at materialet er markeret som offentligt.
+          </p>
         </Card>
       </div>
     );

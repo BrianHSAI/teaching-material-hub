@@ -7,6 +7,7 @@ import { Folder, FolderOpen, MoreVertical, Trash2, Share } from "lucide-react";
 import { FileData, FolderData } from "@/pages/Index";
 import { FileCard } from "./FileCard";
 import { useToast } from "@/hooks/use-toast";
+import { useMaterials } from "@/hooks/useMaterials";
 
 interface FolderCardProps {
   folder: FolderData;
@@ -21,6 +22,7 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
   const [isOpen, setIsOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
+  const { updateMaterial } = useMaterials();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -39,6 +41,20 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
   };
 
   const handleShareFolder = async () => {
+    // Make sure all files in the folder are public before sharing
+    const privateFiles = files.filter(file => !file.isPublic);
+    
+    if (privateFiles.length > 0) {
+      // Make all files in the folder public
+      for (const file of privateFiles) {
+        await updateMaterial(file.id, { is_public: true });
+      }
+      toast({
+        title: "Filer gjort offentlige",
+        description: `${privateFiles.length} filer i mappen er nu gjort offentlige`
+      });
+    }
+
     const shareUrl = `${window.location.origin}/shared/folder/${folder.id}`;
     await navigator.clipboard.writeText(shareUrl);
     toast({

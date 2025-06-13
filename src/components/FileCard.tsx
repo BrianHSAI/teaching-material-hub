@@ -39,6 +39,15 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onOpenDocument, folde
   };
 
   const handleShareFile = async () => {
+    // Ensure the file is public before sharing
+    if (!file.isPublic) {
+      await updateMaterial(file.id, { is_public: true });
+      toast({
+        title: "Materiale gjort offentligt",
+        description: "Materialet er nu offentligt og kan deles"
+      });
+    }
+    
     const shareUrl = `${window.location.origin}/shared/${file.id}`;
     await navigator.clipboard.writeText(shareUrl);
     toast({
