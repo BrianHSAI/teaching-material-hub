@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -68,6 +67,10 @@ export const convertFolderToFolderData = (folder: Folder): FolderData => ({
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
+  
+  console.log("Index component - user:", user);
+  console.log("Index component - authLoading:", authLoading);
+  
   const { materials, loading: materialsLoading, createMaterial, updateMaterial, deleteMaterial } = useMaterials();
   const { folders, loading: foldersLoading, createFolder, deleteFolder } = useFolders();
   
@@ -80,13 +83,16 @@ const Index = () => {
 
   // Redirect to auth if not logged in
   useEffect(() => {
+    console.log("Index useEffect - authLoading:", authLoading, "user:", user);
     if (!authLoading && !user) {
+      console.log("Redirecting to /auth because user is not logged in");
       navigate("/auth");
     }
   }, [user, authLoading, navigate]);
 
   // Show loading while checking auth
   if (authLoading) {
+    console.log("Showing auth loading screen");
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
@@ -99,6 +105,7 @@ const Index = () => {
 
   // Don't render if user is not logged in (redirect should happen)
   if (!user) {
+    console.log("No user found, should redirect to auth");
     return null;
   }
 
