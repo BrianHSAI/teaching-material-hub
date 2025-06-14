@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ export type FolderData = {
 };
 
 // Convert database types to legacy types for component compatibility
-const convertMaterialToFileData = (material: Material): FileData => ({
+export const convertMaterialToFileData = (material: Material): FileData => ({
   id: material.id,
   title: material.title,
   author: material.author,
@@ -57,7 +58,7 @@ const convertMaterialToFileData = (material: Material): FileData => ({
   downloadCount: material.download_count
 });
 
-const convertFolderToFolderData = (folder: Folder): FolderData => ({
+export const convertFolderToFolderData = (folder: Folder): FolderData => ({
   id: folder.id,
   name: folder.name,
   createdAt: new Date(folder.created_at),
