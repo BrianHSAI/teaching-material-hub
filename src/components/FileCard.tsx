@@ -13,9 +13,10 @@ interface FileCardProps {
   onMoveToFolder: (fileId: string, folderId: string) => void;
   onDelete: (fileId: string) => void;
   folders: FolderData[];
+  isSharedView?: boolean;
 }
 
-export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardProps) => {
+export const FileCard = ({ file, onMoveToFolder, onDelete, folders, isSharedView = false }: FileCardProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
 
@@ -39,7 +40,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
       if (error) throw error;
 
       // Generate share URL
-      const shareUrl = `${window.location.origin}/shared/material/${file.id}`;
+      const shareUrl = `${window.location.origin}/shared/file/${file.id}`;
       
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
@@ -79,12 +80,12 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
 
   return (
     <Card 
-      className={`p-6 cursor-move glass-effect hover-glow neon-border transition-all duration-300 ${
+      className={`p-6 ${!isSharedView ? 'cursor-move' : ''} glass-effect hover-glow neon-border transition-all duration-300 ${
         isDragging ? 'opacity-60 scale-95' : ''
       }`}
-      draggable
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      draggable={!isSharedView}
+      onDragStart={!isSharedView ? handleDragStart : undefined}
+      onDragEnd={!isSharedView ? handleDragEnd : undefined}
     >
       <div className="flex flex-col items-center space-y-3">
         {getFileIcon()}
@@ -118,76 +119,78 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
             <Download className="h-4 w-4" />
           </Button>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="h-8 px-3 bg-background/50 border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                }}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                }}
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="glass-effect border-border/50">
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  handleShare();
-                }}
-                className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Del materiale
-              </DropdownMenuItem>
-              {folders.length > 0 && folders.map(folder => (
-                <DropdownMenuItem
-                  key={folder.id}
+          {!isSharedView && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="h-8 px-3 bg-background/50 border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    onMoveToFolder(file.id, folder.id);
                   }}
-                  className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                  }}
                 >
-                  <FolderOpen className="h-4 w-4 mr-2" />
-                  Flyt til {folder.name}
-                </DropdownMenuItem>
-              ))}
-              {file.folderId && (
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="glass-effect border-border/50">
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    onMoveToFolder(file.id, "desktop");
+                    handleShare();
                   }}
                   className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
                 >
-                  <FolderOpen className="h-4 w-4 mr-2" />
-                  Flyt til skrivebord
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Del materiale
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  onDelete(file.id);
-                }}
-                className="hover:bg-red-500/20 focus:bg-red-500/20 transition-colors text-red-600"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Slet materiale
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {folders.length > 0 && folders.map(folder => (
+                  <DropdownMenuItem
+                    key={folder.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      onMoveToFolder(file.id, folder.id);
+                    }}
+                    className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+                  >
+                    <FolderOpen className="h-4 w-4 mr-2" />
+                    Flyt til {folder.name}
+                  </DropdownMenuItem>
+                ))}
+                {file.folderId && (
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      onMoveToFolder(file.id, "desktop");
+                    }}
+                    className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+                  >
+                    <FolderOpen className="h-4 w-4 mr-2" />
+                    Flyt til skrivebord
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onDelete(file.id);
+                  }}
+                  className="hover:bg-red-500/20 focus:bg-red-500/20 transition-colors text-red-600"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Slet materiale
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     </Card>
