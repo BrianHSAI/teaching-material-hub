@@ -3,9 +3,11 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Folder, FolderOpen, MoreVertical, Trash2 } from "lucide-react";
+import { Folder, FolderOpen, MoreVertical, Trash2, Share2 } from "lucide-react";
 import { FileData, FolderData } from "@/pages/Index";
 import { FileCard } from "./FileCard";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface FolderCardProps {
   folder: FolderData;
@@ -18,6 +20,7 @@ interface FolderCardProps {
 export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFolder }: FolderCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const { toast } = useToast();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -33,6 +36,36 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
     setIsDragOver(false);
     const fileId = e.dataTransfer.getData("text/plain");
     onMoveFile(fileId, folder.id);
+  };
+
+  const handleShareFolder = async () => {
+    try {
+      // Make all files in the folder public
+      const { error } = await supabase
+        .from('materials')
+        .update({ is_public: true })
+        .eq('folder_id', folder.id);
+
+      if (error) throw error;
+
+      // Generate share URL for folder
+      const shareUrl = `${window.location.origin}/shared/folder/${folder.id}`;
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(shareUrl);
+      
+      toast({
+        title: "Mappe delt",
+        description: "Link kopieret til udklipsholder. Alle filer i mappen er nu offentligt tilgængelige."
+      });
+    } catch (error) {
+      console.error('Error sharing folder:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke dele mappen",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -63,6 +96,16 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="glass-effect border-border/50">
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShareFolder();
+                }}
+                className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Del mappe
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();

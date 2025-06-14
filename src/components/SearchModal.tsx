@@ -21,13 +21,15 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
   const [filterFormat, setFilterFormat] = useState("all");
   const [filterLanguage, setFilterLanguage] = useState("all");
   const [filterDifficulty, setFilterDifficulty] = useState("all");
+  const [filterClassLevel, setFilterClassLevel] = useState("all");
+  const [filterTags, setFilterTags] = useState("");
   const [results, setResults] = useState<FileData[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const fetchPublicMaterials = async () => {
     // Don't search if no criteria are provided
-    if (!searchTerm && filterFormat === "all" && filterLanguage === "all" && filterDifficulty === "all") {
+    if (!searchTerm && filterFormat === "all" && filterLanguage === "all" && filterDifficulty === "all" && filterClassLevel === "all" && !filterTags) {
       toast({
         title: "Søgekriterie påkrævet",
         description: "Indtast mindst ét søgekriterie for at søge",
@@ -45,7 +47,7 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
 
       // Apply search term filter
       if (searchTerm) {
-        query = query.or(`title.ilike.%${searchTerm}%,author.ilike.%${searchTerm}%,tags.cs.{${searchTerm}}`);
+        query = query.or(`title.ilike.%${searchTerm}%,author.ilike.%${searchTerm}%`);
       }
 
       // Apply format filter
@@ -63,6 +65,11 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
         query = query.eq('difficulty', filterDifficulty);
       }
 
+      // Apply class level filter
+      if (filterClassLevel && filterClassLevel !== "all") {
+        query = query.eq('class_level', filterClassLevel);
+      }
+
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
@@ -75,8 +82,21 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
         return;
       }
 
+      // Filter by tags if specified
+      let filteredResults = data || [];
+      if (filterTags) {
+        const tagSearchTerms = filterTags.toLowerCase().split(',').map(tag => tag.trim());
+        filteredResults = filteredResults.filter(material => 
+          material.tags && material.tags.some(tag => 
+            tagSearchTerms.some(searchTag => 
+              tag.toLowerCase().includes(searchTag)
+            )
+          )
+        );
+      }
+
       // Convert database materials to FileData format
-      const convertedResults: FileData[] = (data || []).map(material => ({
+      const convertedResults: FileData[] = filteredResults.map(material => ({
         id: material.id,
         title: material.title,
         author: material.author,
@@ -133,6 +153,8 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
     setFilterFormat("all");
     setFilterLanguage("all");
     setFilterDifficulty("all");
+    setFilterClassLevel("all");
+    setFilterTags("");
     setResults([]);
     setHasSearched(false);
     onClose();
@@ -149,17 +171,28 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
           {/* Search Form */}
           <div className="bg-gray-50 p-4 rounded-lg space-y-4">
             <div>
-              <Label htmlFor="search">Søg efter titel, forfatter eller tags</Label>
+              <Label htmlFor="search">Søg efter titel eller forfatter</Label>
               <Input
                 id="search"
-                placeholder="f.eks. grammatik, romantik, engelsk..."
+                placeholder="f.eks. grammatik, dansk, matematik..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="tags">Søg efter tags (adskil med komma)</Label>
+              <Input
+                id="tags"
+                placeholder="f.eks. grammatik, romantik, algebra..."
+                value={filterTags}
+                onChange={(e) => setFilterTags(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <Label htmlFor="format-filter">Format</Label>
                 <Select value={filterFormat} onValueChange={setFilterFormat}>
@@ -205,6 +238,23 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
                     <SelectItem value="let">Let</SelectItem>
                     <SelectItem value="mellem">Mellem</SelectItem>
                     <SelectItem value="svær">Svær</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="class-level-filter">Klassetrin</Label>
+                <Select value={filterClassLevel} onValueChange={setFilterClassLevel}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Alle klassetrin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle klassetrin</SelectItem>
+                    <SelectItem value="0-3">0-3 klasse</SelectItem>
+                    <SelectItem value="4-6">4-6 klasse</SelectItem>
+                    <SelectItem value="7-9">7-9 klasse</SelectItem>
+                    <SelectItem value="gymnasie">Gymnasie</SelectItem>
+                    <SelectItem value="voksen">Voksenundervisning</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

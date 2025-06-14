@@ -3,8 +3,10 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { FileText, Download, MoreVertical, FolderOpen, Video, Globe, Trash2 } from "lucide-react";
+import { FileText, Download, MoreVertical, FolderOpen, Video, Globe, Trash2, Share2, Copy } from "lucide-react";
 import { FileData, FolderData } from "@/pages/Index";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface FileCardProps {
   file: FileData;
@@ -15,6 +17,7 @@ interface FileCardProps {
 
 export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardProps) => {
   const [isDragging, setIsDragging] = useState(false);
+  const { toast } = useToast();
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData("text/plain", file.id);
@@ -25,9 +28,34 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
     setIsDragging(false);
   };
 
-  const stopPropagation = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleShare = async () => {
+    try {
+      // Make the material public first
+      const { error } = await supabase
+        .from('materials')
+        .update({ is_public: true })
+        .eq('id', file.id);
+
+      if (error) throw error;
+
+      // Generate share URL
+      const shareUrl = `${window.location.origin}/shared/material/${file.id}`;
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(shareUrl);
+      
+      toast({
+        title: "Materiale delt",
+        description: "Link kopieret til udklipsholder. Materialet er nu offentligt tilgængeligt."
+      });
+    } catch (error) {
+      console.error('Error sharing material:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke dele materialet",
+        variant: "destructive"
+      });
+    }
   };
 
   const getFileIcon = () => {
@@ -109,6 +137,17 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders }: FileCardPr
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="glass-effect border-border/50">
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleShare();
+                }}
+                className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Del materiale
+              </DropdownMenuItem>
               {folders.length > 0 && folders.map(folder => (
                 <DropdownMenuItem
                   key={folder.id}
