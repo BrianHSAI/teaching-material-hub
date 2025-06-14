@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -202,13 +201,18 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
 
           <div>
             <Label htmlFor="classLevel">Klassetrin *</Label>
-            <Input
-              id="classLevel"
-              placeholder="f.eks. 7. klasse, 2.g, osv."
-              value={formData.classLevel}
-              onChange={(e) => setFormData(prev => ({ ...prev, classLevel: e.target.value }))}
-              required
-            />
+            <Select value={formData.classLevel} onValueChange={(value) => setFormData(prev => ({ ...prev, classLevel: value }))}>
+              <SelectTrigger id="classLevel">
+                <SelectValue placeholder="Vælg klassetrin" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0-3">0-3 klasse</SelectItem>
+                <SelectItem value="4-6">4-6 klasse</SelectItem>
+                <SelectItem value="7-9">7-9 klasse</SelectItem>
+                <SelectItem value="gymnasie">Gymnasie</SelectItem>
+                <SelectItem value="voksen">Voksenundervisning</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

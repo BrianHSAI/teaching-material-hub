@@ -8,7 +8,6 @@ import { ProfileModal } from "@/components/ProfileModal";
 import { FileCard } from "@/components/FileCard";
 import { FolderCard } from "@/components/FolderCard";
 import { CreateFolderModal } from "@/components/CreateFolderModal";
-import { DocumentModal } from "@/components/DocumentModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMaterials, Material } from "@/hooks/useMaterials";
 import { useFolders, Folder } from "@/hooks/useFolders";
@@ -75,7 +74,6 @@ const Index = () => {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
-  const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [isDragOverDesktop, setIsDragOverDesktop] = useState(false);
 
@@ -119,24 +117,6 @@ const Index = () => {
       folder_id: fileData.folderId
     });
     setShowUploadModal(false);
-  };
-
-  const handleCreateDocument = async (documentData: Omit<FileData, 'id' | 'createdAt' | 'downloadCount'>) => {
-    await createMaterial({
-      title: documentData.title,
-      author: documentData.author,
-      source: documentData.source,
-      format: documentData.format,
-      genre: documentData.genre,
-      language: documentData.language,
-      difficulty: documentData.difficulty,
-      class_level: documentData.classLevel,
-      tags: documentData.tags,
-      is_public: documentData.isPublic,
-      file_url: documentData.fileUrl || "",
-      folder_id: documentData.folderId
-    });
-    setShowDocumentModal(false);
   };
 
   const handleCreateFolder = async (name: string, color: string) => {
@@ -232,15 +212,6 @@ const Index = () => {
                       </button>
                       <button
                         onClick={() => {
-                          setShowDocumentModal(true);
-                          setShowAddMenu(false);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Opret dokument
-                      </button>
-                      <button
-                        onClick={() => {
                           setShowCreateFolderModal(true);
                           setShowAddMenu(false);
                         }}
@@ -297,9 +268,6 @@ const Index = () => {
                 <Button onClick={() => setShowUploadModal(true)} className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="h-4 w-4 mr-2" />
                   Tilføj materiale
-                </Button>
-                <Button variant="outline" onClick={() => setShowDocumentModal(true)}>
-                  Opret dokument
                 </Button>
                 <Button variant="outline" onClick={() => setShowCreateFolderModal(true)}>
                   Opret mappe
@@ -381,13 +349,6 @@ const Index = () => {
         open={showCreateFolderModal}
         onClose={() => setShowCreateFolderModal(false)}
         onCreate={handleCreateFolder}
-      />
-
-      <DocumentModal
-        open={showDocumentModal}
-        onClose={() => setShowDocumentModal(false)}
-        onSave={handleCreateDocument}
-        folders={legacyFolders}
       />
     </div>
   );
