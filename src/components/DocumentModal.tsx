@@ -105,12 +105,23 @@ export const DocumentModal = ({ open, onClose, onSave, folders, editingDocument 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="genre">Genre/Emne</Label>
-              <Input
-                id="genre"
-                value={genre}
-                onChange={(e) => setGenre(e.target.value)}
-                placeholder="F.eks. Matematik, Dansk, Naturvidenskab..."
-              />
+              <Select value={genre} onValueChange={setGenre}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Vælg genre..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="artikel">Artikel</SelectItem>
+                  <SelectItem value="novelle">Novelle</SelectItem>
+                  <SelectItem value="roman">Roman</SelectItem>
+                  <SelectItem value="digt">Digt</SelectItem>
+                  <SelectItem value="fagtekst">Fagtekst</SelectItem>
+                  <SelectItem value="matematik">Matematik</SelectItem>
+                  <SelectItem value="dansk">Dansk</SelectItem>
+                  <SelectItem value="naturvidenskab">Naturvidenskab</SelectItem>
+                  <SelectItem value="historie">Historie</SelectItem>
+                  <SelectItem value="andet">Andet</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="folder">Mappe</Label>

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -156,6 +157,7 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
                 <SelectContent>
                   <SelectItem value="artikel">Artikel</SelectItem>
                   <SelectItem value="novelle">Novelle</SelectItem>
+                  <SelectItem value="roman">Roman</SelectItem>
                   <SelectItem value="digt">Digt</SelectItem>
                   <SelectItem value="fagtekst">Fagtekst</SelectItem>
                   <SelectItem value="film">Film</SelectItem>
