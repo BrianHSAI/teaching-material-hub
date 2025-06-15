@@ -181,14 +181,14 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="glass-effect border-border/50 bg-white z-50">
+              <DropdownMenuContent className="bg-white border-gray-200 shadow-lg z-50">
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     handleToggleVisibility();
                   }}
-                  className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+                  className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
                 >
                   {file.isPublic ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
                   {file.isPublic ? "Gør privat" : "Gør offentligt"}
@@ -199,7 +199,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
                     e.preventDefault();
                     handleShare();
                   }}
-                  className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+                  className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
                 >
                   <Share2 className="h-4 w-4 mr-2" />
                   Del materiale
@@ -212,7 +212,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
                       e.preventDefault();
                       onMoveToFolder(file.id, folder.id);
                     }}
-                    className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+                    className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
                   >
                     <FolderOpen className="h-4 w-4 mr-2" />
                     Flyt til {folder.name}
@@ -225,7 +225,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
                       e.preventDefault();
                       onMoveToFolder(file.id, "desktop");
                     }}
-                    className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+                    className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
                   >
                     <FolderOpen className="h-4 w-4 mr-2" />
                     Flyt til skrivebord
