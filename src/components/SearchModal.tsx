@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,11 +8,19 @@ import { FileData, FolderData } from "@/pages/Index";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Folder, FolderPlus } from "lucide-react";
+import { GroupedSearchResultCard } from "./GroupedSearchResultCard";
 
 interface SearchModalProps {
   open: boolean;
   onClose: () => void;
   onSaveFile: (fileData: FileData) => void;
+}
+
+interface GroupedResult {
+  title: string;
+  language: string;
+  format: string;
+  files: FileData[];
 }
 
 export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => {
@@ -24,7 +31,7 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
   const [filterDifficulty, setFilterDifficulty] = useState("all");
   const [filterClassLevel, setFilterClassLevel] = useState("all");
   const [filterTags, setFilterTags] = useState("");
-  const [results, setResults] = useState<FileData[]>([]);
+  const [groupedResults, setGroupedResults] = useState<GroupedResult[]>([]);
   const [folderResults, setFolderResults] = useState<(FolderData & { fileCount: number })[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -98,26 +105,38 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
         );
       }
 
-      // Convert database materials to FileData format
-      const convertedResults: FileData[] = filteredResults.map(material => ({
-        id: material.id,
-        title: material.title,
-        author: material.author,
-        source: material.source,
-        format: material.format,
-        genre: material.genre,
-        language: material.language,
-        difficulty: material.difficulty,
-        classLevel: material.class_level,
-        tags: material.tags || [],
-        isPublic: material.is_public,
-        fileUrl: material.file_url,
-        folderId: material.folder_id,
-        createdAt: new Date(material.created_at),
-        downloadCount: material.download_count || 0,
-      }));
-
-      setResults(convertedResults);
+      // Convert and Group database materials
+      const grouped = (filteredResults || []).reduce((acc, material) => {
+        const key = `${material.title}-${material.language}-${material.format}`;
+        if (!acc[key]) {
+            acc[key] = {
+                title: material.title,
+                language: material.language,
+                format: material.format,
+                files: [],
+            };
+        }
+        acc[key].files.push({
+            id: material.id,
+            title: material.title,
+            author: material.author,
+            source: material.source,
+            format: material.format,
+            genre: material.genre,
+            language: material.language,
+            difficulty: material.difficulty,
+            classLevel: material.class_level,
+            tags: material.tags || [],
+            isPublic: material.is_public,
+            fileUrl: material.file_url,
+            folderId: material.folder_id,
+            createdAt: new Date(material.created_at),
+            downloadCount: material.download_count || 0,
+        });
+        return acc;
+      }, {} as Record<string, GroupedResult>);
+      
+      setGroupedResults(Object.values(grouped));
 
       // Search for folders if search term is provided
       if (searchTerm) {
@@ -252,11 +271,13 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
     setFilterDifficulty("all");
     setFilterClassLevel("all");
     setFilterTags("");
-    setResults([]);
+    setGroupedResults([]);
     setFolderResults([]);
     setHasSearched(false);
     onClose();
   };
+
+  const totalMaterials = groupedResults.reduce((sum, group) => sum + group.files.length, 0);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -371,7 +392,7 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
           {hasSearched && (
             <div>
               <h3 className="text-lg font-semibold mb-4">
-                Søgeresultater ({results.length} materialer og {folderResults.length} mapper fundet)
+                Søgeresultater ({totalMaterials} materialer og {folderResults.length} mapper fundet)
               </h3>
               
               {loading ? (
@@ -422,66 +443,25 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
                   )}
 
                   {/* Material Results */}
-                  {results.length > 0 && (
+                  {groupedResults.length > 0 && (
                     <div>
                       <h4 className="text-md font-semibold mb-3 text-gray-800">Individuelle materialer</h4>
                       <div className="space-y-3">
-                        {results.map(material => (
-                          <div key={material.id} className="bg-white border border-gray-200 rounded-lg p-4">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <h4 className="text-lg font-semibold text-gray-900">{material.title}</h4>
-                                <p className="text-sm text-gray-600">Af {material.author}</p>
-                                
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                                    {material.format}
-                                  </span>
-                                  <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                                    {material.language}
-                                  </span>
-                                  <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
-                                    {material.difficulty}
-                                  </span>
-                                  <span className="inline-block bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">
-                                    {material.classLevel}
-                                  </span>
-                                </div>
-                                
-                                <div className="mt-2">
-                                  <p className="text-sm text-gray-600">
-                                    Tags: {material.tags.length > 0 ? material.tags.join(", ") : "Ingen tags"}
-                                  </p>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    Downloadet {material.downloadCount} gange
-                                  </p>
-                                </div>
-                              </div>
-                              
-                              <div className="ml-4 flex flex-col space-y-2">
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleSaveMaterial(material)}
-                                  className="bg-green-600 hover:bg-green-700"
-                                >
-                                  Gem til mine materialer
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => window.open(material.fileUrl, '_blank')}
-                                >
-                                  Vis materiale
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
+                        {groupedResults.map(group => (
+                          <GroupedSearchResultCard
+                            key={`${group.title}-${group.language}-${group.format}`}
+                            title={group.title}
+                            language={group.language}
+                            format={group.format}
+                            files={group.files}
+                            onSave={handleSaveMaterial}
+                          />
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {results.length === 0 && folderResults.length === 0 && (
+                  {groupedResults.length === 0 && folderResults.length === 0 && (
                     <p className="text-gray-500 text-center py-8">
                       Ingen materialer eller mapper fundet. Prøv at ændre dine søgekriterier.
                     </p>
