@@ -262,14 +262,14 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
       <ContextMenuContent className="bg-white border border-gray-200 shadow-lg z-50">
         <ContextMenuItem
           onClick={() => handleToggleVisibility()}
-          className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+          className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
         >
           {file.isPublic ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
           {file.isPublic ? "Gør privat" : "Gør offentligt"}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={() => handleShare()}
-          className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+          className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
         >
           <Share2 className="h-4 w-4 mr-2" />
           Del materiale
