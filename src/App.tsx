@@ -52,10 +52,14 @@ const App = () => (
 function OtpWrapper({ children }: { children: React.ReactNode }) {
   const { type, id } = useParams<{ type: string, id: string }>();
   const navigate = useNavigate();
-  if (typeof window !== "undefined" && type && id) {
-    const unlocked = sessionStorage.getItem(`share_access_${type}_${id}`) === "true";
+
+  // Strip "-otp" hvis det er med i id
+  const realId = id?.replace(/-otp$/, "");
+  if (typeof window !== "undefined" && type && realId) {
+    const unlocked = sessionStorage.getItem(`share_access_${type}_${realId}`) === "true";
     if (!unlocked) {
-      navigate(`/shared/${type}/${id}-otp`);
+      // Naviger til OTP-gate med -otp på rigtig id
+      navigate(`/shared/${type}/${realId}-otp`);
       return null;
     }
   }
