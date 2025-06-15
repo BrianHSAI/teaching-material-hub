@@ -142,8 +142,12 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
       </Card>
       
       {isOpen && files.length > 0 && (
-        <div className="mt-4 bg-gray-50/50 rounded-lg p-4 border border-gray-200/50">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-lg p-6 border border-gray-200/50 shadow-sm">
+          <div className="mb-4">
+            <h4 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Filer i {folder.name}</h4>
+            <div className="h-px bg-gradient-to-r from-gray-200 to-transparent mt-2"></div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {files.map(file => (
               <div key={file.id} className="transform transition-all duration-200 hover:scale-105">
                 <FileCard
