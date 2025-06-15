@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -73,6 +72,17 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
     }
   };
 
+  const handleShareFolderOtp = async () => {
+    // Generér link til OTP-gate
+    const otpLink = `${window.location.origin}/shared/folder/${folder.id}-otp`;
+    await navigator.clipboard.writeText(otpLink);
+
+    toast({
+      title: "OTP-link kopieret",
+      description: "Delt adgang (OTP) link er kopieret til udklipsholder.",
+    });
+  };
+
   const getFileIcon = (format: string) => {
     switch (format) {
       case "pdf":
@@ -128,7 +138,18 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
                 className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
               >
                 <Share2 className="h-4 w-4 mr-2" />
-                Del mappe
+                Del mappe (offentligt)
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShareFolderOtp();
+                }}
+                className="transition-colors rounded-lg px-3 py-2 my-1 mb-2 font-bold text-white bg-black hover:bg-zinc-900 focus:bg-zinc-900 text-center"
+                style={{justifyContent: "center", fontWeight: "bold"}}
+              >
+                {/* Stilen følger din vedhæftede knap */}
+                Få adgang med midlertidigt login-link
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={(e) => {

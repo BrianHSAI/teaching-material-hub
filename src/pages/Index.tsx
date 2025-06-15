@@ -407,11 +407,14 @@ const Index = () => {
         onCreate={handleCreateFolder}
       />
 
+      {/* Fjernet knap til midlertidigt login-link fra forsiden */}
+      {/* 
       <div className="flex justify-center mt-4">
         <Button onClick={() => navigate("/magic-link")} variant="outline">
           Få adgang med midlertidigt login-link
         </Button>
       </div>
+      */}
     </div>
   );
 };

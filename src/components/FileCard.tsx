@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,6 +60,17 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
         variant: "destructive"
       });
     }
+  };
+
+  const handleShareOtp = async () => {
+    // Generér og kopier OTP-link
+    const otpLink = `${window.location.origin}/shared/file/${file.id}-otp`;
+    await navigator.clipboard.writeText(otpLink);
+
+    toast({
+      title: "OTP-link kopieret",
+      description: "Del-link med kode er kopieret til udklipsholder.",
+    });
   };
 
   const handleToggleVisibility = async () => {
@@ -193,6 +203,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
                   {file.isPublic ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
                   {file.isPublic ? "Gør privat" : "Gør offentligt"}
                 </DropdownMenuItem>
+                {/* Fast "Del fil" (offentligt) */}
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
@@ -202,8 +213,21 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
                   className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
                 >
                   <Share2 className="h-4 w-4 mr-2" />
-                  Del materiale
+                  Del (offentligt link)
                 </DropdownMenuItem>
+                {/* Ny mulighed for "midlertidigt login-link" */}
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleShareOtp();
+                  }}
+                  className="transition-colors rounded-lg px-3 py-2 my-1 font-bold text-white bg-black hover:bg-zinc-900 focus:bg-zinc-900 text-center"
+                  style={{justifyContent: "center", fontWeight: "bold"}}
+                >
+                  Få adgang med midlertidigt login-link
+                </DropdownMenuItem>
+                {/* Flyt til-muligheder */}
                 {folders.length > 0 && folders.map(folder => (
                   <DropdownMenuItem
                     key={folder.id}
@@ -231,6 +255,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
                     Flyt til skrivebord
                   </DropdownMenuItem>
                 )}
+                {/* Slet fil */}
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
