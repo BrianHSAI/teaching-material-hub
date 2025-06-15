@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -64,7 +63,16 @@ export default function SharedOtpGate() {
         {step === "email" && (
           <form onSubmit={handleSendOtp} className="space-y-4">
             <p className="mb-2 text-sm text-gray-700">Indtast din e-mail for at få adgang til materialet:</p>
-            <Input type="email" label="E-mail" required value={email} onChange={e => setEmail(e.target.value)} autoFocus />
+            {/* LABEL and INPUT update */}
+            <label htmlFor="otp-email" className="block text-sm font-medium text-gray-700">E-mail</label>
+            <Input
+              id="otp-email"
+              type="email"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              autoFocus
+            />
             <Button className="w-full bg-blue-600 hover:bg-blue-700" disabled={sending}>{sending ? "Sender..." : "Send kode"}</Button>
             {error && <div className="text-red-500 text-sm">{error}</div>}
           </form>
