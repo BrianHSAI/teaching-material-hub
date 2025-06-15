@@ -49,11 +49,11 @@ export const convertMaterialToFileData = (material: Material): FileData => ({
   genre: material.genre,
   language: material.language,
   difficulty: material.difficulty,
-  class_level: material.class_level,
+  classLevel: material.class_level,
   tags: material.tags,
-  is_public: material.is_public,
-  file_url: material.file_url,
-  folder_id: material.folder_id,
+  isPublic: material.is_public,
+  fileUrl: material.file_url,
+  folderId: material.folder_id,
   createdAt: new Date(material.created_at),
   downloadCount: material.download_count
 });
