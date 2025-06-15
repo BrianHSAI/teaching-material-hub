@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -133,17 +132,18 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
   };
 
   const handleSaveMaterial = (material: FileData) => {
-    // Create a copy with new ID for user's collection
+    // Create a copy with new ID for user's collection and make it private
     const newMaterial = {
       ...material,
       id: Date.now().toString(),
       folderId: undefined, // Save to desktop by default
+      isPublic: false, // Make saved materials private by default
     };
     onSaveFile(newMaterial);
     onClose();
     toast({
       title: "Materiale gemt",
-      description: `"${material.title}" er blevet gemt til dine materialer`
+      description: `"${material.title}" er blevet gemt til dine materialer som privat`
     });
   };
 

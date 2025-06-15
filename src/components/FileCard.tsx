@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { FileText, Download, MoreVertical, FolderOpen, Video, Globe, Trash2, Share2, Copy } from "lucide-react";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { FileText, Download, MoreVertical, FolderOpen, Video, Globe, Trash2, Share2, Copy, Eye, EyeOff } from "lucide-react";
 import { FileData, FolderData } from "@/pages/Index";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -12,11 +13,12 @@ interface FileCardProps {
   file: FileData;
   onMoveToFolder: (fileId: string, folderId: string) => void;
   onDelete: (fileId: string) => void;
+  onUpdateVisibility: (fileId: string, isPublic: boolean) => void;
   folders: FolderData[];
   isSharedView?: boolean;
 }
 
-export const FileCard = ({ file, onMoveToFolder, onDelete, folders, isSharedView = false }: FileCardProps) => {
+export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, folders, isSharedView = false }: FileCardProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
 
@@ -39,6 +41,8 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders, isSharedView
 
       if (error) throw error;
 
+      onUpdateVisibility(file.id, true);
+
       // Generate share URL
       const shareUrl = `${window.location.origin}/shared/file/${file.id}`;
       
@@ -54,6 +58,34 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders, isSharedView
       toast({
         title: "Fejl",
         description: "Kunne ikke dele materialet",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleToggleVisibility = async () => {
+    try {
+      const newVisibility = !file.isPublic;
+      const { error } = await supabase
+        .from('materials')
+        .update({ is_public: newVisibility })
+        .eq('id', file.id);
+
+      if (error) throw error;
+
+      onUpdateVisibility(file.id, newVisibility);
+      
+      toast({
+        title: newVisibility ? "Materiale gjort offentligt" : "Materiale gjort privat",
+        description: newVisibility 
+          ? "Materialet er nu synligt for andre" 
+          : "Materialet er nu kun synligt for dig"
+      });
+    } catch (error) {
+      console.error('Error updating visibility:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke ændre synlighed",
         variant: "destructive"
       });
     }
@@ -78,15 +110,26 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders, isSharedView
     }
   };
 
-  return (
+  const FileContent = () => (
     <Card 
-      className={`p-6 ${!isSharedView ? 'cursor-move' : ''} glass-effect hover-glow neon-border transition-all duration-300 ${
+      className={`p-6 ${!isSharedView ? 'cursor-move' : ''} glass-effect hover-glow neon-border transition-all duration-300 relative ${
         isDragging ? 'opacity-60 scale-95' : ''
       }`}
       draggable={!isSharedView}
       onDragStart={!isSharedView ? handleDragStart : undefined}
       onDragEnd={!isSharedView ? handleDragEnd : undefined}
     >
+      {/* Visibility indicator */}
+      {!isSharedView && (
+        <div className="absolute top-2 left-2 z-10">
+          {file.isPublic ? (
+            <Eye className="h-4 w-4 text-green-500" title="Offentligt materiale" />
+          ) : (
+            <EyeOff className="h-4 w-4 text-gray-400" title="Privat materiale" />
+          )}
+        </div>
+      )}
+
       <div className="flex flex-col items-center space-y-3">
         {getFileIcon()}
         <div className="text-center">
@@ -138,7 +181,18 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders, isSharedView
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="glass-effect border-border/50">
+              <DropdownMenuContent className="glass-effect border-border/50 bg-white z-50">
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleToggleVisibility();
+                  }}
+                  className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+                >
+                  {file.isPublic ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                  {file.isPublic ? "Gør privat" : "Gør offentligt"}
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
@@ -194,5 +248,40 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, folders, isSharedView
         </div>
       </div>
     </Card>
+  );
+
+  if (isSharedView) {
+    return <FileContent />;
+  }
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <FileContent />
+      </ContextMenuTrigger>
+      <ContextMenuContent className="bg-white border border-gray-200 shadow-lg z-50">
+        <ContextMenuItem
+          onClick={() => handleToggleVisibility()}
+          className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+        >
+          {file.isPublic ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+          {file.isPublic ? "Gør privat" : "Gør offentligt"}
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => handleShare()}
+          className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+        >
+          <Share2 className="h-4 w-4 mr-2" />
+          Del materiale
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => onDelete(file.id)}
+          className="hover:bg-red-500/20 focus:bg-red-500/20 transition-colors text-red-600"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Slet materiale
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 };

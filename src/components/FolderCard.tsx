@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Folder, FolderOpen, MoreVertical, Trash2, Share2 } from "lucide-react";
+import { Folder, FolderOpen, MoreVertical, Trash2, Share2, ChevronDown, ChevronRight } from "lucide-react";
 import { FileData, FolderData } from "@/pages/Index";
 import { FileCard } from "./FileCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,9 +15,10 @@ interface FolderCardProps {
   onMoveFile: (fileId: string, folderId: string) => void;
   onDeleteFile: (fileId: string) => void;
   onDeleteFolder: (folderId: string) => void;
+  onUpdateFileVisibility: (fileId: string, isPublic: boolean) => void;
 }
 
-export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFolder }: FolderCardProps) => {
+export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFolder, onUpdateFileVisibility }: FolderCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
@@ -69,7 +70,7 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
   };
 
   return (
-    <div>
+    <div className="w-full">
       <Card 
         className={`p-6 cursor-pointer glass-effect hover-glow neon-border transition-all duration-300 relative ${
           isDragOver ? 'ring-2 ring-primary scale-105' : ''
@@ -95,7 +96,7 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="glass-effect border-border/50">
+            <DropdownMenuContent className="glass-effect border-border/50 bg-white z-50">
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
@@ -120,13 +121,20 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
           </DropdownMenu>
         </div>
 
-        <div className="flex flex-col items-center space-y-3">
-          {isOpen ? (
-            <FolderOpen className="h-10 w-10 drop-shadow-lg" style={{ color: folder.color }} />
-          ) : (
-            <Folder className="h-10 w-10 drop-shadow-lg" style={{ color: folder.color }} />
-          )}
-          <div className="text-center">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            {isOpen ? (
+              <ChevronDown className="h-4 w-4 text-gray-500" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-500" />
+            )}
+            {isOpen ? (
+              <FolderOpen className="h-8 w-8 drop-shadow-lg" style={{ color: folder.color }} />
+            ) : (
+              <Folder className="h-8 w-8 drop-shadow-lg" style={{ color: folder.color }} />
+            )}
+          </div>
+          <div className="flex-1">
             <h3 className="font-bold text-base text-foreground drop-shadow-sm">{folder.name}</h3>
             <p className="text-sm text-muted-foreground">{files.length} filer</p>
           </div>
@@ -134,17 +142,20 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
       </Card>
       
       {isOpen && files.length > 0 && (
-        <div className="mt-4 ml-6 space-y-3 animate-fade-in">
-          {files.map(file => (
-            <div key={file.id} className="scale-95 transform">
-              <FileCard
-                file={file}
-                onMoveToFolder={onMoveFile}
-                onDelete={onDeleteFile}
-                folders={[]}
-              />
-            </div>
-          ))}
+        <div className="mt-4 bg-gray-50/50 rounded-lg p-4 border border-gray-200/50">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {files.map(file => (
+              <div key={file.id} className="transform transition-all duration-200 hover:scale-105">
+                <FileCard
+                  file={file}
+                  onMoveToFolder={onMoveFile}
+                  onDelete={onDeleteFile}
+                  onUpdateVisibility={onUpdateFileVisibility}
+                  folders={[]}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

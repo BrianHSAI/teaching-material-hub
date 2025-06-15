@@ -144,6 +144,10 @@ const Index = () => {
     await deleteFolder(folderId);
   };
 
+  const handleUpdateFileVisibility = async (fileId: string, isPublic: boolean) => {
+    await updateMaterial(fileId, { is_public: isPublic });
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
@@ -288,6 +292,25 @@ const Index = () => {
             {/* Desktop Area */}
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Mit skrivebord</h2>
+              
+              {/* Folders */}
+              {legacyFolders.length > 0 && (
+                <div className="space-y-4 mb-6">
+                  {legacyFolders.map(folder => (
+                    <FolderCard
+                      key={folder.id}
+                      folder={folder}
+                      files={legacyFiles.filter(file => file.folderId === folder.id)}
+                      onMoveFile={handleMoveFileToFolder}
+                      onDeleteFile={handleDeleteFile}
+                      onDeleteFolder={handleDeleteFolder}
+                      onUpdateFileVisibility={handleUpdateFileVisibility}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Desktop Files */}
               <div 
                 className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 min-h-[200px] p-4 rounded-lg border-2 border-dashed transition-all duration-300 ${
                   isDragOverDesktop 
@@ -298,18 +321,6 @@ const Index = () => {
                 onDragLeave={handleDesktopDragLeave}
                 onDrop={handleDesktopDrop}
               >
-                {/* Folders */}
-                {legacyFolders.map(folder => (
-                  <FolderCard
-                    key={folder.id}
-                    folder={folder}
-                    files={legacyFiles.filter(file => file.folderId === folder.id)}
-                    onMoveFile={handleMoveFileToFolder}
-                    onDeleteFile={handleDeleteFile}
-                    onDeleteFolder={handleDeleteFolder}
-                  />
-                ))}
-                
                 {/* Files on desktop */}
                 {desktopFiles.map(file => (
                   <FileCard
@@ -317,6 +328,7 @@ const Index = () => {
                     file={file}
                     onMoveToFolder={handleMoveFileToFolder}
                     onDelete={handleDeleteFile}
+                    onUpdateVisibility={handleUpdateFileVisibility}
                     folders={legacyFolders}
                   />
                 ))}
