@@ -65,6 +65,8 @@ export const convertFolderToFolderData = (folder: Folder): FolderData => ({
   color: folder.color
 });
 
+const LOGO = "/lovable-uploads/re_XWZ1BxzQ_FqnjTiR21fgDykBBGN9yM5uS.png";
+
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -202,7 +204,9 @@ const Index = () => {
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
+            {/* Logo og titel */}
             <div className="flex items-center">
+              <img src={LOGO} alt="Logo" className="h-8 w-8 rounded mr-2" />
               <h1 className="text-2xl font-bold text-gray-900">My Teaching Materials</h1>
             </div>
             

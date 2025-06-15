@@ -10,6 +10,7 @@ import SharedView from "./pages/SharedView";
 import SharedFolder from "./pages/SharedFolder";
 import NotFound from "./pages/NotFound";
 import MagicLink from "./pages/MagicLink";
+import SharedOtpGate from "./pages/SharedOtpGate";
 
 const queryClient = new QueryClient();
 
@@ -24,7 +25,17 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/magic-link" element={<MagicLink />} />
-            <Route path="/shared/:type/:id" element={<SharedView />} />
+            {/* OTP beskyttelse for delte filer/mapper */}
+            <Route path="/shared/:type/:id-otp" element={<SharedOtpGate />} />
+            <Route
+              path="/shared/:type/:id"
+              element={
+                <OtpWrapper>
+                  {/* SharedView loader fil/mappe, men kræver adgang! */}
+                  <SharedView />
+                </OtpWrapper>
+              }
+            />
             <Route path="/shared/folder/:id" element={<SharedFolder />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
@@ -34,5 +45,19 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
+
+// Simple wrapper: Hvis adgang ikke givet på dette sessionStorage-key, send til /shared/:type/:id-otp
+function OtpWrapper({ children }: { children: React.ReactNode }) {
+  const { type, id } = useParams<{ type: string, id: string }>();
+  const navigate = useNavigate();
+  if (typeof window !== "undefined" && type && id) {
+    const unlocked = sessionStorage.getItem(`share_access_${type}_${id}`) === "true";
+    if (!unlocked) {
+      navigate(`/shared/${type}/${id}-otp`);
+      return null;
+    }
+  }
+  return <>{children}</>;
+}
 
 export default App;
