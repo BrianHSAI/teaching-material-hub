@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -8,7 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { FileData, FolderData } from "@/pages/Index";
 
 const SharedFolder = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id: idParam } = useParams<{ id: string }>();
+  const id = idParam?.replace(/-otp$/, ""); // Fjern "-otp" hvis det er med
   const [folder, setFolder] = useState<FolderData | null>(null);
   const [files, setFiles] = useState<FileData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +17,6 @@ const SharedFolder = () => {
   useEffect(() => {
     const fetchSharedFolder = async () => {
       if (!id) return;
-
       try {
         // Fetch folder details
         const { data: folderData, error: folderError } = await supabase
@@ -68,7 +67,6 @@ const SharedFolder = () => {
         setLoading(false);
       }
     };
-
     fetchSharedFolder();
   }, [id]);
 

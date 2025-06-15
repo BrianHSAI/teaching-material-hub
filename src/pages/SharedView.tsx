@@ -8,7 +8,8 @@ import { FolderIcon, File as FileIcon, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const SharedView = () => {
-  const { type, id } = useParams<{ type: 'file' | 'folder'; id: string }>();
+  const { type, id: idParam } = useParams<{ type: 'file' | 'folder'; id: string }>();
+  const id = idParam?.replace(/-otp$/, ""); // Fjern "-otp" hvis det er med
   const [item, setItem] = useState<FileData | FolderData | null>(null);
   const [filesInFolder, setFilesInFolder] = useState<FileData[]>([]);
   const [loading, setLoading] = useState(true);
