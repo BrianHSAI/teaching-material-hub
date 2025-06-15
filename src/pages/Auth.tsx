@@ -119,11 +119,11 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4">
-      {/* Logo placeret øverst */}
+      {/* Større logo placeret øverst */}
       <img
         src={LOGO}
         alt="Logo"
-        className="h-16 w-16 mb-6 rounded shadow-md border-2 border-blue-200 bg-white"
+        className="h-28 w-28 mb-6 rounded shadow-md border-2 border-blue-200 bg-white"
         style={{ objectFit: "contain" }}
       />
       <Card className="w-full max-w-md">
