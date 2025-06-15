@@ -1,0 +1,22 @@
+
+{
+  "auth": {
+    "title": "My Teaching Materials",
+    "description": "Log in to share and find teaching materials",
+    "signInTab": "Sign In",
+    "signUpTab": "Sign Up"
+  },
+  "signIn": {
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "button": "Sign In",
+    "buttonLoading": "Signing in..."
+  },
+  "signUp": {
+    "fullNameLabel": "Full Name",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "button": "Sign Up",
+    "buttonLoading": "Creating account..."
+  }
+}

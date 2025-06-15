@@ -1,0 +1,22 @@
+
+{
+  "auth": {
+    "title": "My Teaching Materials",
+    "description": "Log ind for at dele og finde undervisningsmaterialer",
+    "signInTab": "Log ind",
+    "signUpTab": "Opret konto"
+  },
+  "signIn": {
+    "emailLabel": "Email",
+    "passwordLabel": "Adgangskode",
+    "button": "Log ind",
+    "buttonLoading": "Logger ind..."
+  },
+  "signUp": {
+    "fullNameLabel": "Fulde navn",
+    "emailLabel": "Email",
+    "passwordLabel": "Adgangskode",
+    "button": "Opret konto",
+    "buttonLoading": "Opretter konto..."
+  }
+}

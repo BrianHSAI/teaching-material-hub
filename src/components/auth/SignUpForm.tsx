@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 type SignUpFormProps = {
   setLoadingParent: (loading: boolean) => void;
@@ -16,6 +17,7 @@ export const SignUpForm = ({ setLoadingParent }: SignUpFormProps) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +71,7 @@ export const SignUpForm = ({ setLoadingParent }: SignUpFormProps) => {
   return (
     <form onSubmit={handleSignUp} className="space-y-4">
       <div>
-        <Label htmlFor="signup-name">Fulde navn</Label>
+        <Label htmlFor="signup-name">{t('signUp.fullNameLabel')}</Label>
         <Input
           id="signup-name"
           type="text"
@@ -79,7 +81,7 @@ export const SignUpForm = ({ setLoadingParent }: SignUpFormProps) => {
         />
       </div>
       <div>
-        <Label htmlFor="signup-email">Email</Label>
+        <Label htmlFor="signup-email">{t('signUp.emailLabel')}</Label>
         <Input
           id="signup-email"
           type="email"
@@ -89,7 +91,7 @@ export const SignUpForm = ({ setLoadingParent }: SignUpFormProps) => {
         />
       </div>
       <div>
-        <Label htmlFor="signup-password">Adgangskode</Label>
+        <Label htmlFor="signup-password">{t('signUp.passwordLabel')}</Label>
         <Input
           id="signup-password"
           type="password"
@@ -100,7 +102,7 @@ export const SignUpForm = ({ setLoadingParent }: SignUpFormProps) => {
         />
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Opretter konto..." : "Opret konto"}
+        {loading ? t('signUp.buttonLoading') : t('signUp.button')}
       </Button>
     </form>
   );

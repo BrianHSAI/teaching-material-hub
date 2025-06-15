@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 type SignInFormProps = {
   setLoadingParent: (loading: boolean) => void;
@@ -17,6 +18,7 @@ export const SignInForm = ({ setLoadingParent }: SignInFormProps) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +66,7 @@ export const SignInForm = ({ setLoadingParent }: SignInFormProps) => {
   return (
     <form onSubmit={handleSignIn} className="space-y-4">
       <div>
-        <Label htmlFor="signin-email">Email</Label>
+        <Label htmlFor="signin-email">{t('signIn.emailLabel')}</Label>
         <Input
           id="signin-email"
           type="email"
@@ -74,7 +76,7 @@ export const SignInForm = ({ setLoadingParent }: SignInFormProps) => {
         />
       </div>
       <div>
-        <Label htmlFor="signin-password">Adgangskode</Label>
+        <Label htmlFor="signin-password">{t('signIn.passwordLabel')}</Label>
         <Input
           id="signin-password"
           type="password"
@@ -84,7 +86,7 @@ export const SignInForm = ({ setLoadingParent }: SignInFormProps) => {
         />
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Logger ind..." : "Log ind"}
+        {loading ? t('signIn.buttonLoading') : t('signIn.button')}
       </Button>
     </form>
   );

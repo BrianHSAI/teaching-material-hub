@@ -1,5 +1,4 @@
-
-// Add the missing imports at the top
+import "@/i18n";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
