@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
-const LOGO = "/lovable-uploads/re_XWZ1BxzQ_FqnjTiR21fgDykBBGN9yM5uS.png";
+const LOGO = "/lovable-uploads/70b7bcd1-e7d9-4faf-baf5-855b246bb838.png";
 
 export default function SharedOtpGate() {
   const { type, id } = useParams<{type: "folder" | "file", id: string}>();

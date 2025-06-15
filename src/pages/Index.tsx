@@ -65,7 +65,7 @@ export const convertFolderToFolderData = (folder: Folder): FolderData => ({
   color: folder.color
 });
 
-const LOGO = "/lovable-uploads/re_XWZ1BxzQ_FqnjTiR21fgDykBBGN9yM5uS.png";
+const LOGO = "/lovable-uploads/70b7bcd1-e7d9-4faf-baf5-855b246bb838.png";
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
