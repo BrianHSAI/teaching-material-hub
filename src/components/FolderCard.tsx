@@ -54,6 +54,11 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
       
+      // Update local state to reflect that files are now public
+      files.forEach(file => {
+        onUpdateFileVisibility(file.id, true);
+      });
+      
       toast({
         title: "Mappe delt",
         description: "Link kopieret til udklipsholder. Alle filer i mappen er nu offentligt tilgængelige."
