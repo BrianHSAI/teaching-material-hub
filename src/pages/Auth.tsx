@@ -9,6 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Tilføjet logo URL
+const LOGO = "/lovable-uploads/2d41b264-180a-4c74-85c9-2ba41083cd1e.png";
+
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -115,7 +118,14 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4">
+      {/* Logo placeret øverst */}
+      <img
+        src={LOGO}
+        alt="Logo"
+        className="h-16 w-16 mb-6 rounded shadow-md border-2 border-blue-200 bg-white"
+        style={{ objectFit: "contain" }}
+      />
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">My Teaching Materials</CardTitle>
