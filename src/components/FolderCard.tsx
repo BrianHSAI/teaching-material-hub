@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,14 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
   };
 
   const handleShareFolder = async () => {
+    if (files.length === 0) {
+      toast({
+        title: "Tom mappe",
+        description: "Du kan ikke dele en tom mappe. Tilføj venligst filer først.",
+        variant: "destructive",
+      });
+      return;
+    }
     try {
       // Make all files in the folder public
       const { error } = await supabase
@@ -73,14 +82,44 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
   };
 
   const handleShareFolderOtp = async () => {
-    // Generér link til OTP-gate
-    const otpLink = `${window.location.origin}/shared/folder/${folder.id}-otp`;
-    await navigator.clipboard.writeText(otpLink);
+    if (files.length === 0) {
+      toast({
+        title: "Tom mappe",
+        description: "Du kan ikke dele en tom mappe. Tilføj venligst filer først.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      // Make all files in the folder public to ensure it's accessible after OTP
+      const { error } = await supabase
+        .from('materials')
+        .update({ is_public: true })
+        .eq('folder_id', folder.id);
 
-    toast({
-      title: "OTP-link kopieret",
-      description: "Delt adgang (OTP) link er kopieret til udklipsholder.",
-    });
+      if (error) throw error;
+
+      // Update local state to reflect that files are now public
+      files.forEach(file => {
+        onUpdateFileVisibility(file.id, true);
+      });
+
+      // Generér link til OTP-gate
+      const otpLink = `${window.location.origin}/shared/folder/${folder.id}-otp`;
+      await navigator.clipboard.writeText(otpLink);
+
+      toast({
+        title: "OTP-link kopieret",
+        description: "Delt adgang (OTP) link er kopieret. Alle filer i mappen er nu offentligt tilgængelige.",
+      });
+    } catch (error) {
+      console.error('Error sharing folder with OTP:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke oprette OTP-delingslink for mappen",
+        variant: "destructive"
+      });
+    }
   };
 
   const getFileIcon = (format: string) => {

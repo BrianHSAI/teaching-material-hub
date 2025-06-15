@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -63,14 +64,33 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
   };
 
   const handleShareOtp = async () => {
-    // Generér og kopier OTP-link
-    const otpLink = `${window.location.origin}/shared/file/${file.id}-otp`;
-    await navigator.clipboard.writeText(otpLink);
+    try {
+      // Make the material public first to ensure it's accessible after OTP
+      const { error } = await supabase
+        .from('materials')
+        .update({ is_public: true })
+        .eq('id', file.id);
 
-    toast({
-      title: "OTP-link kopieret",
-      description: "Del-link med kode er kopieret til udklipsholder.",
-    });
+      if (error) throw error;
+
+      onUpdateVisibility(file.id, true);
+
+      // Generér og kopier OTP-link
+      const otpLink = `${window.location.origin}/shared/file/${file.id}-otp`;
+      await navigator.clipboard.writeText(otpLink);
+
+      toast({
+        title: "OTP-link kopieret",
+        description: "Del-link med kode er kopieret. Materialet er nu offentligt tilgængeligt.",
+      });
+    } catch (error) {
+      console.error('Error sharing material with OTP:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke oprette OTP-delingslink",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleToggleVisibility = async () => {
