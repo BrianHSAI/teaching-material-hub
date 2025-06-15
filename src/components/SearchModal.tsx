@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -120,29 +121,46 @@ export const SearchModal = ({ open, onClose, onSaveFile }: SearchModalProps) => 
 
       // Search for folders if search term is provided
       if (searchTerm) {
+        // First, get folders that match the search term
         const { data: foldersData, error: foldersError } = await supabase
           .from('folders')
-          .select(`
-            *,
-            materials!folder_id (
-              id,
-              is_public
-            )
-          `)
+          .select('*')
           .ilike('name', `%${searchTerm}%`);
 
-        if (!foldersError && foldersData) {
-          const foldersWithPublicFiles = foldersData
-            .map(folder => ({
-              id: folder.id,
-              name: folder.name,
-              createdAt: new Date(folder.created_at),
-              color: folder.color,
-              fileCount: folder.materials?.filter((m: any) => m.is_public).length || 0
-            }))
-            .filter(folder => folder.fileCount > 0); // Only show folders with public files
+        if (foldersError) {
+          console.error('Error fetching folders:', foldersError);
+        } else if (foldersData) {
+          // For each folder, count how many public files it contains
+          const foldersWithCounts = await Promise.all(
+            foldersData.map(async (folder) => {
+              const { count, error: countError } = await supabase
+                .from('materials')
+                .select('*', { count: 'exact', head: true })
+                .eq('folder_id', folder.id)
+                .eq('is_public', true);
 
-          setFolderResults(foldersWithPublicFiles);
+              if (countError) {
+                console.error('Error counting files for folder:', folder.id, countError);
+                return null;
+              }
+
+              return {
+                id: folder.id,
+                name: folder.name,
+                createdAt: new Date(folder.created_at),
+                color: folder.color,
+                fileCount: count || 0
+              };
+            })
+          );
+
+          // Filter out null results and folders with no public files
+          const validFolders = foldersWithCounts
+            .filter((folder): folder is FolderData & { fileCount: number } => 
+              folder !== null && folder.fileCount > 0
+            );
+
+          setFolderResults(validFolders);
         }
       } else {
         setFolderResults([]);
