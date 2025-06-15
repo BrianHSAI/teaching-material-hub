@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,9 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 const LOGO = "/lovable-uploads/70b7bcd1-e7d9-4faf-baf5-855b246bb838.png";
 
 export default function SharedOtpGate() {
+  // Strip "-otp" from id if it exists in the param, so we always have the correct ID
   const { type, id } = useParams<{type: "folder" | "file", id: string}>();
+  const realId = id?.replace(/-otp$/, "");
   const [step, setStep] = useState<"email" | "verify" | "done">("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -22,7 +25,7 @@ export default function SharedOtpGate() {
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL?.replace("https://", "https://")}/functions/v1/send-otp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, share_type: type, share_id: id, action: "send" })
+      body: JSON.stringify({ email, share_type: type, share_id: realId, action: "send" })
     });
     const data = await res.json();
     if (data.ok) {
@@ -39,13 +42,13 @@ export default function SharedOtpGate() {
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL?.replace("https://", "https://")}/functions/v1/send-otp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, share_type: type, share_id: id, action: "verify", otp_code: otp })
+      body: JSON.stringify({ email, share_type: type, share_id: realId, action: "verify", otp_code: otp })
     });
     const data = await res.json();
     if (data.ok) {
       // Giv adgang: omdiriger til rigtigt delingsindhold og sæt session/sessionStorage
-      sessionStorage.setItem(`share_access_${type}_${id}`, "true");
-      navigate(`/shared/${type}/${id}`);
+      sessionStorage.setItem(`share_access_${type}_${realId}`, "true");
+      navigate(`/shared/${type}/${realId}`);
     } else {
       setError(data.reason || "Ugyldig kode eller fejl.");
     }
