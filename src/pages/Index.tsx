@@ -11,6 +11,7 @@ import { CreateFolderModal } from "@/components/CreateFolderModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMaterials, Material } from "@/hooks/useMaterials";
 import { useFolders, Folder } from "@/hooks/useFolders";
+import { GroupedFileCard } from "@/components/GroupedFileCard";
 
 // Legacy types for compatibility with existing components
 export type FileData = {
@@ -48,19 +49,19 @@ export const convertMaterialToFileData = (material: Material): FileData => ({
   genre: material.genre,
   language: material.language,
   difficulty: material.difficulty,
-  classLevel: material.class_level,
+  class_level: material.class_level,
   tags: material.tags,
-  isPublic: material.is_public,
-  fileUrl: material.file_url,
-  folderId: material.folder_id,
-  createdAt: new Date(material.created_at),
-  downloadCount: material.download_count
+  is_public: material.is_public,
+  file_url: material.file_url,
+  folder_id: material.folder_id,
+  created_at: material.created_at,
+  download_count: material.download_count
 });
 
 export const convertFolderToFolderData = (folder: Folder): FolderData => ({
   id: folder.id,
   name: folder.name,
-  createdAt: new Date(folder.created_at),
+  created_at: folder.created_at,
   color: folder.color
 });
 
@@ -177,6 +178,22 @@ const Index = () => {
   const legacyFiles = materials.map(convertMaterialToFileData);
   const legacyFolders = folders.map(convertFolderToFolderData);
   const desktopFiles = legacyFiles.filter(file => !file.folderId);
+
+  // Group files by title and genre
+  const groupedFiles = desktopFiles.reduce((acc, file) => {
+    const key = `${file.title}-${file.genre}`;
+    if (!acc[key]) {
+      acc[key] = {
+        title: file.title,
+        genre: file.genre,
+        files: []
+      };
+    }
+    acc[key].files.push(file);
+    return acc;
+  }, {} as Record<string, { title: string; genre: string; files: FileData[] }>);
+
+  const groupedFilesList = Object.values(groupedFiles);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -321,16 +338,29 @@ const Index = () => {
                 onDragLeave={handleDesktopDragLeave}
                 onDrop={handleDesktopDrop}
               >
-                {/* Files on desktop */}
-                {desktopFiles.map(file => (
-                  <FileCard
-                    key={file.id}
-                    file={file}
-                    onMoveToFolder={handleMoveFileToFolder}
-                    onDelete={handleDeleteFile}
-                    onUpdateVisibility={handleUpdateFileVisibility}
-                    folders={legacyFolders}
-                  />
+                {/* Grouped Files on desktop */}
+                {groupedFilesList.map(group => (
+                  group.files.length === 1 ? (
+                    <FileCard
+                      key={group.files[0].id}
+                      file={group.files[0]}
+                      onMoveToFolder={handleMoveFileToFolder}
+                      onDelete={handleDeleteFile}
+                      onUpdateVisibility={handleUpdateFileVisibility}
+                      folders={legacyFolders}
+                    />
+                  ) : (
+                    <GroupedFileCard
+                      key={`${group.title}-${group.genre}`}
+                      title={group.title}
+                      genre={group.genre}
+                      files={group.files}
+                      onMoveToFolder={handleMoveFileToFolder}
+                      onDelete={handleDeleteFile}
+                      onUpdateVisibility={handleUpdateFileVisibility}
+                      folders={legacyFolders}
+                    />
+                  )
                 ))}
 
                 {/* Drop zone hint when dragging */}
