@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -403,6 +402,12 @@ const Index = () => {
         onClose={() => setShowCreateFolderModal(false)}
         onCreate={handleCreateFolder}
       />
+
+      <div className="flex justify-center mt-4">
+        <Button onClick={() => navigate("/magic-link")} variant="outline">
+          Få adgang med midlertidigt login-link
+        </Button>
+      </div>
     </div>
   );
 };
