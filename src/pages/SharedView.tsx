@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -121,7 +122,15 @@ const SharedView = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {filesInFolder.map(file => (
-                    <FileCard key={file.id} file={file} folders={allFolders} onMoveToFolder={() => {}} onDelete={() => {}} isSharedView={true} />
+                    <FileCard 
+                      key={file.id} 
+                      file={file} 
+                      folders={allFolders} 
+                      onMoveToFolder={() => {}} 
+                      onDelete={() => {}} 
+                      onUpdateVisibility={() => {}}
+                      isSharedView={true} 
+                    />
                   ))}
                 </div>
               </>

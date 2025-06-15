@@ -123,9 +123,9 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
       {!isSharedView && (
         <div className="absolute top-2 left-2 z-10">
           {file.isPublic ? (
-            <Eye className="h-4 w-4 text-green-500" title="Offentligt materiale" />
+            <Eye className="h-4 w-4 text-green-500" />
           ) : (
-            <EyeOff className="h-4 w-4 text-gray-400" title="Privat materiale" />
+            <EyeOff className="h-4 w-4 text-gray-400" />
           )}
         </div>
       )}
