@@ -4,7 +4,8 @@
     "title": "My Teaching Materials",
     "description": "Log in to share and find teaching materials",
     "signInTab": "Sign In",
-    "signUpTab": "Sign Up"
+    "signUpTab": "Sign Up",
+    "contact": "For questions, write to kontakt@brianhs.dk"
   },
   "signIn": {
     "emailLabel": "Email",

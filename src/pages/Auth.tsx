@@ -50,6 +50,11 @@ const Auth = () => {
           </Tabs>
         </CardContent>
       </Card>
+      <div className="mt-6 text-center">
+        <p className="text-sm text-gray-600">
+          {t('auth.contact')}
+        </p>
+      </div>
     </div>
   );
 };
