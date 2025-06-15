@@ -114,13 +114,13 @@ export const FolderCard = ({ folder, files, onMoveFile, onDeleteFile, onDeleteFo
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="glass-effect border-border/50 bg-white z-50">
+            <DropdownMenuContent className="bg-white border-gray-200 shadow-lg z-50">
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
                   handleShareFolder();
                 }}
-                className="hover:bg-primary/20 focus:bg-primary/20 transition-colors"
+                className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
               >
                 <Share2 className="h-4 w-4 mr-2" />
                 Del mappe

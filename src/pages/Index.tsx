@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -179,9 +180,9 @@ const Index = () => {
   const legacyFolders = folders.map(convertFolderToFolderData);
   const desktopFiles = legacyFiles.filter(file => !file.folderId);
 
-  // Group files by title, language, and format
+  // Group files by title, language, and format - Fixed grouping logic
   const groupedFiles = desktopFiles.reduce((acc, file) => {
-    const key = `${file.title}-${file.language}-${file.format}`;
+    const key = `${file.title.toLowerCase()}-${file.language.toLowerCase()}-${file.format.toLowerCase()}`;
     if (!acc[key]) {
       acc[key] = {
         title: file.title,
