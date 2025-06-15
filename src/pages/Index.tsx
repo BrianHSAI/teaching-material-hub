@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,19 +50,19 @@ export const convertMaterialToFileData = (material: Material): FileData => ({
   genre: material.genre,
   language: material.language,
   difficulty: material.difficulty,
-  class_level: material.class_level,
+  classLevel: material.class_level,
   tags: material.tags,
-  is_public: material.is_public,
-  file_url: material.file_url,
-  folder_id: material.folder_id,
-  created_at: material.created_at,
-  download_count: material.download_count
+  isPublic: material.is_public,
+  fileUrl: material.file_url,
+  folderId: material.folder_id,
+  createdAt: new Date(material.created_at),
+  downloadCount: material.download_count
 });
 
 export const convertFolderToFolderData = (folder: Folder): FolderData => ({
   id: folder.id,
   name: folder.name,
-  created_at: folder.created_at,
+  createdAt: new Date(folder.created_at),
   color: folder.color
 });
 
