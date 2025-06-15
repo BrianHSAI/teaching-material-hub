@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -50,11 +49,11 @@ export const convertMaterialToFileData = (material: Material): FileData => ({
   genre: material.genre,
   language: material.language,
   difficulty: material.difficulty,
-  classLevel: material.class_level,
+  class_level: material.class_level,
   tags: material.tags,
-  isPublic: material.is_public,
-  fileUrl: material.file_url,
-  folderId: material.folder_id,
+  is_public: material.is_public,
+  file_url: material.file_url,
+  folder_id: material.folder_id,
   createdAt: new Date(material.created_at),
   downloadCount: material.download_count
 });
@@ -180,19 +179,20 @@ const Index = () => {
   const legacyFolders = folders.map(convertFolderToFolderData);
   const desktopFiles = legacyFiles.filter(file => !file.folderId);
 
-  // Group files by title and genre
+  // Group files by title, language, and format
   const groupedFiles = desktopFiles.reduce((acc, file) => {
-    const key = `${file.title}-${file.genre}`;
+    const key = `${file.title}-${file.language}-${file.format}`;
     if (!acc[key]) {
       acc[key] = {
         title: file.title,
-        genre: file.genre,
+        language: file.language,
+        format: file.format,
         files: []
       };
     }
     acc[key].files.push(file);
     return acc;
-  }, {} as Record<string, { title: string; genre: string; files: FileData[] }>);
+  }, {} as Record<string, { title: string; language: string; format: string; files: FileData[] }>);
 
   const groupedFilesList = Object.values(groupedFiles);
 
@@ -352,9 +352,10 @@ const Index = () => {
                     />
                   ) : (
                     <GroupedFileCard
-                      key={`${group.title}-${group.genre}`}
+                      key={`${group.title}-${group.language}-${group.format}`}
                       title={group.title}
-                      genre={group.genre}
+                      language={group.language}
+                      format={group.format}
                       files={group.files}
                       onMoveToFolder={handleMoveFileToFolder}
                       onDelete={handleDeleteFile}

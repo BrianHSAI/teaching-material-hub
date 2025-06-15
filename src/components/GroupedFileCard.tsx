@@ -8,7 +8,8 @@ import { FileData, FolderData } from "@/pages/Index";
 
 interface GroupedFileCardProps {
   title: string;
-  genre: string;
+  language: string;
+  format: string;
   files: FileData[];
   onMoveToFolder: (fileId: string, folderId: string) => void;
   onDelete: (fileId: string) => void;
@@ -18,7 +19,8 @@ interface GroupedFileCardProps {
 
 export const GroupedFileCard = ({
   title,
-  genre,
+  language,
+  format,
   files,
   onMoveToFolder,
   onDelete,
@@ -83,7 +85,7 @@ export const GroupedFileCard = ({
                       >
                         <div className="flex items-center space-x-2">
                           {getFileIcon(file.format)}
-                          <span>{file.author} ({file.format})</span>
+                          <span>{file.author} ({file.genre})</span>
                         </div>
                       </DropdownMenuItem>
                     ))}
@@ -139,7 +141,10 @@ export const GroupedFileCard = ({
             {selectedFile.format}
           </span>
           <span className="inline-block bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full font-medium">
-            {genre}
+            {selectedFile.genre}
+          </span>
+          <span className="inline-block bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded-full font-medium">
+            {language}
           </span>
           <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${getDifficultyColor(selectedFile.difficulty)}`}>
             {selectedFile.difficulty}
