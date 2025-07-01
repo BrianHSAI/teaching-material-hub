@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -146,12 +147,12 @@ const SharedFolder = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {files.map(file => (
-              <Card key={file.id} className="p-6 hover:shadow-lg transition-shadow">
+              <Card key={file.id} className="p-6 hover:shadow-lg transition-shadow bg-gray-800 border-gray-700">
                 <div className="flex items-start space-x-3">
                   {getFileIcon(file.format)}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate">{file.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">Af {file.author}</p>
+                    <h3 className="font-semibold text-white truncate">{file.title}</h3>
+                    <p className="text-sm text-gray-300 mb-2">Af {file.author}</p>
                     
                     <div className="flex flex-wrap gap-2 mb-3">
                       <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
@@ -166,7 +167,7 @@ const SharedFolder = () => {
                     </div>
 
                     <div className="mb-3">
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-400">
                         Tags: {file.tags.length > 0 ? file.tags.join(", ") : "Ingen tags"}
                       </p>
                     </div>
