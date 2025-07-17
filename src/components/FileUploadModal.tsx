@@ -121,15 +121,6 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="source">Kilde (valgfri)</Label>
-            <Input
-              id="source"
-              value={formData.source}
-              onChange={(e) => setFormData(prev => ({ ...prev, source: e.target.value }))}
-            />
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="format">Format *</Label>
@@ -155,7 +146,9 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
                   <SelectValue placeholder="Vælg genre" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="redskab">Redskab</SelectItem>
                   <SelectItem value="artikel">Artikel</SelectItem>
+                  <SelectItem value="excel">Excel</SelectItem>
                   <SelectItem value="novelle">Novelle</SelectItem>
                   <SelectItem value="roman">Roman</SelectItem>
                   <SelectItem value="digt">Digt</SelectItem>
@@ -210,6 +203,7 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
                 <SelectValue placeholder="Vælg klassetrin" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="alle-klassetrin">Alle klassetrin</SelectItem>
                 <SelectItem value="0-3">0-3 klasse</SelectItem>
                 <SelectItem value="4-6">4-6 klasse</SelectItem>
                 <SelectItem value="7-9">7-9 klasse</SelectItem>
