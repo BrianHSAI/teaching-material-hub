@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,82 +6,56 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FileData, FolderData } from "@/pages/Index";
+import { Material } from "@/hooks/useMaterials";
 
-interface FileUploadModalProps {
+interface MaterialEditModalProps {
   open: boolean;
   onClose: () => void;
-  onUpload: (fileData: FileData) => void;
-  folders: FolderData[];
+  onUpdate: (materialData: Partial<Material>) => void;
+  material: Material;
 }
 
-export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUploadModalProps) => {
+export const MaterialEditModal = ({ open, onClose, onUpdate, material }: MaterialEditModalProps) => {
   const [formData, setFormData] = useState({
-    title: "",
-    author: "",
-    source: "",
-    format: "",
-    genre: "",
-    language: "",
-    difficulty: "",
-    classLevel: "",
-    tags: "",
-    description: "",
-    isPublic: true,
-    folderId: "desktop",
-    fileUrl: "",
-    gdprCompliant: false,
+    title: material.title,
+    author: material.author,
+    format: material.format,
+    genre: material.genre,
+    language: material.language,
+    difficulty: material.difficulty,
+    class_level: material.class_level,
+    tags: material.tags.join(", "),
+    description: material.description || "",
+    is_public: material.is_public,
+    file_url: material.file_url,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.gdprCompliant) {
-      alert("Du skal bekræfte at materialet overholder GDPR og ophavsret");
-      return;
-    }
-
-    if (!formData.fileUrl) {
-      alert("Du skal indsætte et link til materialet");
-      return;
-    }
-
-    const fileData: FileData = {
-      ...formData,
-      id: "",
+    const updateData: Partial<Material> = {
+      title: formData.title,
+      author: formData.author,
+      format: formData.format,
+      genre: formData.genre,
+      language: formData.language,
+      difficulty: formData.difficulty,
+      class_level: formData.class_level,
       tags: formData.tags.split(",").map(tag => tag.trim()).filter(tag => tag),
-      folderId: formData.folderId === "desktop" ? undefined : formData.folderId,
-      createdAt: new Date(),
-      downloadCount: 0,
-      fileUrl: formData.fileUrl
+      description: formData.description,
+      is_public: formData.is_public,
+      file_url: formData.file_url,
     };
 
-    onUpload(fileData);
-    
-    // Reset form
-    setFormData({
-      title: "",
-      author: "",
-      source: "",
-      format: "",
-      genre: "",
-      language: "",
-      difficulty: "",
-      classLevel: "",
-      tags: "",
-      description: "",
-      isPublic: true,
-      folderId: "desktop",
-      fileUrl: "",
-      gdprCompliant: false,
-    });
+    onUpdate(updateData);
+    onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Tilføj nyt undervisningsmateriale</DialogTitle>
+          <DialogTitle>Rediger materiale</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -92,13 +65,10 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
               id="fileUrl"
               type="url"
               placeholder="https://example.com/dokument.pdf"
-              value={formData.fileUrl}
-              onChange={(e) => setFormData(prev => ({ ...prev, fileUrl: e.target.value }))}
+              value={formData.file_url}
+              onChange={(e) => setFormData(prev => ({ ...prev, file_url: e.target.value }))}
               required
             />
-            <p className="text-sm text-gray-500 mt-1">
-              Indsæt link til Google Drive, OneDrive, YouTube, eller andre platforme
-            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -200,7 +170,7 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
 
           <div>
             <Label htmlFor="classLevel">Klassetrin *</Label>
-            <Select value={formData.classLevel} onValueChange={(value) => setFormData(prev => ({ ...prev, classLevel: value }))}>
+            <Select value={formData.class_level} onValueChange={(value) => setFormData(prev => ({ ...prev, class_level: value }))}>
               <SelectTrigger id="classLevel">
                 <SelectValue placeholder="Vælg klassetrin" />
               </SelectTrigger>
@@ -244,43 +214,14 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
             />
           </div>
 
-          {folders.length > 0 && (
-            <div>
-              <Label htmlFor="folder">Gem i mappe (valgfri)</Label>
-              <Select value={formData.folderId} onValueChange={(value) => setFormData(prev => ({ ...prev, folderId: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Vælg mappe eller lad stå tom for skrivebord" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="desktop">Skrivebord</SelectItem>
-                  {folders.map(folder => (
-                    <SelectItem key={folder.id} value={folder.id}>{folder.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
           <div className="flex items-center space-x-2">
             <Checkbox
               id="isPublic"
-              checked={formData.isPublic}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPublic: !!checked }))}
+              checked={formData.is_public}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_public: !!checked }))}
             />
             <Label htmlFor="isPublic">
               Gør materialet synligt for andre brugere (anbefalet)
-            </Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="gdprCompliant"
-              checked={formData.gdprCompliant}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, gdprCompliant: !!checked }))}
-              required
-            />
-            <Label htmlFor="gdprCompliant" className="text-sm">
-              Jeg bekræfter at materialet overholder GDPR og ophavsret samt er lovligt *
             </Label>
           </div>
 
@@ -289,7 +230,7 @@ export const FileUploadModal = ({ open, onClose, onUpload, folders }: FileUpload
               Annuller
             </Button>
             <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-              Tilføj materiale
+              Gem ændringer
             </Button>
           </div>
         </form>

@@ -43,6 +43,7 @@ export type Database = {
           author: string
           class_level: string
           created_at: string
+          description: string | null
           difficulty: string
           download_count: number | null
           file_url: string
@@ -62,6 +63,7 @@ export type Database = {
           author: string
           class_level: string
           created_at?: string
+          description?: string | null
           difficulty: string
           download_count?: number | null
           file_url: string
@@ -81,6 +83,7 @@ export type Database = {
           author?: string
           class_level?: string
           created_at?: string
+          description?: string | null
           difficulty?: string
           download_count?: number | null
           file_url?: string

@@ -4,8 +4,11 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { FileData, FolderData, convertMaterialToFileData, convertFolderToFolderData } from '@/pages/Index';
 import { FileCard } from '@/components/FileCard';
-import { FolderIcon, File as FileIcon, Home } from 'lucide-react';
+import { MaterialEditModal } from '@/components/MaterialEditModal';
+import { Material } from '@/hooks/useMaterials';
+import { FolderIcon, File as FileIcon, Home, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 const SharedView = () => {
   const { type, id: idParam } = useParams<{ type: 'file' | 'folder'; id: string }>();
@@ -15,6 +18,9 @@ const SharedView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [allFolders, setAllFolders] = useState<FolderData[]>([]);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [materialToEdit, setMaterialToEdit] = useState<Material | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!type || !id) {
@@ -88,6 +94,47 @@ const SharedView = () => {
     fetchItem();
   }, [type, id]);
 
+  const handleEditMaterial = (material: Material) => {
+    setMaterialToEdit(material);
+    setEditModalOpen(true);
+  };
+
+  const handleUpdateMaterial = async (updates: Partial<Material>) => {
+    if (!materialToEdit) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('materials')
+        .update(updates)
+        .eq('id', materialToEdit.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update the local state
+      if (type === 'file' && item) {
+        setItem(convertMaterialToFileData(data));
+      } else if (type === 'folder') {
+        setFilesInFolder(prev => prev.map(file => 
+          file.id === materialToEdit.id ? convertMaterialToFileData(data) : file
+        ));
+      }
+
+      toast({
+        title: "Materiale opdateret",
+        description: "Dine ændringer er blevet gemt"
+      });
+    } catch (error) {
+      console.error('Error updating material:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke opdatere materialet",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -138,20 +185,64 @@ const SharedView = () => {
             )}
             {type === 'file' && (
                <div className="bg-white rounded-lg shadow-md p-8">
-                <div className="flex items-center gap-4 mb-4">
-                  <FileIcon className="h-10 w-10 text-blue-500" />
-                  <h1 className="text-3xl font-bold text-gray-800">{(item as FileData).title}</h1>
-                </div>
-                <p className="text-gray-600 mb-4">Forfatter: {(item as FileData).author}</p>
-                <Button asChild>
-                  <a href={(item as FileData).fileUrl} target="_blank" rel="noopener noreferrer">
-                    Åbn materiale
-                  </a>
-                </Button>
+                 <div className="flex items-center justify-between mb-4">
+                   <div className="flex items-center gap-4">
+                     <FileIcon className="h-10 w-10 text-blue-500" />
+                     <h1 className="text-3xl font-bold text-gray-800">{(item as FileData).title}</h1>
+                   </div>
+                   <Button 
+                     variant="outline" 
+                     onClick={() => {
+                       // Convert FileData to Material for editing
+                       const material: Material = {
+                         id: (item as FileData).id,
+                         title: (item as FileData).title,
+                         author: (item as FileData).author,
+                         format: (item as FileData).format,
+                         genre: (item as FileData).genre,
+                         language: (item as FileData).language,
+                         difficulty: (item as FileData).difficulty,
+                         class_level: (item as FileData).classLevel,
+                         tags: (item as FileData).tags,
+                         is_public: (item as FileData).isPublic,
+                         file_url: (item as FileData).fileUrl,
+                         folder_id: (item as FileData).folderId,
+                         created_at: (item as FileData).createdAt.toISOString(),
+                         download_count: (item as FileData).downloadCount,
+                         user_id: '', // Will be handled by database
+                         description: ''
+                       };
+                       handleEditMaterial(material);
+                     }}
+                   >
+                     <Edit2 className="h-4 w-4 mr-2" />
+                     Rediger
+                   </Button>
+                 </div>
+                 <p className="text-gray-600 mb-4">Forfatter: {(item as FileData).author}</p>
+                 <div className="flex gap-2">
+                   <Button asChild>
+                     <a href={(item as FileData).fileUrl} target="_blank" rel="noopener noreferrer">
+                       Åbn materiale
+                     </a>
+                   </Button>
+                 </div>
                </div>
             )}
           </div>
         ) : null}
+
+        {materialToEdit && (
+          <MaterialEditModal
+            open={editModalOpen}
+            onClose={() => {
+              setEditModalOpen(false);
+              setMaterialToEdit(null);
+            }}
+            onUpdate={handleUpdateMaterial}
+            material={materialToEdit}
+          />
+        )}
       </div>
     </div>
   );

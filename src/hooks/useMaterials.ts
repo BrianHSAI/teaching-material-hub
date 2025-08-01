@@ -21,6 +21,7 @@ export interface Material {
   created_at: string;
   download_count: number;
   user_id: string;
+  description?: string;
 }
 
 export const useMaterials = () => {
