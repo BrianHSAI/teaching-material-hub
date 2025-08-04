@@ -25,6 +25,7 @@ export type FileData = {
   difficulty: string;
   classLevel: string;
   tags: string[];
+  description?: string;
   isPublic: boolean;
   fileUrl?: string;
   folderId?: string;
@@ -51,6 +52,7 @@ export const convertMaterialToFileData = (material: Material): FileData => ({
   difficulty: material.difficulty,
   classLevel: material.class_level,
   tags: material.tags,
+  description: material.description,
   isPublic: material.is_public,
   fileUrl: material.file_url,
   folderId: material.folder_id,
@@ -123,6 +125,7 @@ const Index = () => {
       difficulty: fileData.difficulty,
       class_level: fileData.classLevel,
       tags: fileData.tags,
+      description: fileData.description,
       is_public: fileData.isPublic,
       file_url: fileData.fileUrl || "",
       folder_id: fileData.folderId

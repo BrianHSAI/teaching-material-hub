@@ -130,12 +130,12 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
       title: file.title,
       author: file.author,
       format: file.format,
-      genre: (file as any).genre || '',
-      language: (file as any).language || '',
-      difficulty: (file as any).difficulty || '',
-      class_level: (file as any).classLevel || '',
+      genre: file.genre || '',
+      language: file.language || '',
+      difficulty: file.difficulty || '',
+      class_level: file.classLevel || '',
       tags: file.tags || [],
-      description: (file as any).description || '',
+      description: file.description || '',
       is_public: file.isPublic,
       file_url: file.fileUrl
     });
