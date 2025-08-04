@@ -4,10 +4,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { FileText, Download, MoreVertical, FolderOpen, Video, Globe, Trash2, Share2, Copy, Eye, EyeOff } from "lucide-react";
+import { FileText, Download, MoreVertical, FolderOpen, Video, Globe, Trash2, Share2, Copy, Eye, EyeOff, Edit3 } from "lucide-react";
 import { FileData, FolderData } from "@/pages/Index";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { MaterialEditModal } from "./MaterialEditModal";
 
 interface FileCardProps {
   file: FileData;
@@ -20,6 +21,8 @@ interface FileCardProps {
 
 export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, folders, isSharedView = false }: FileCardProps) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [materialToEdit, setMaterialToEdit] = useState<any>(null);
   const { toast } = useToast();
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -116,6 +119,51 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
       toast({
         title: "Fejl",
         description: "Kunne ikke ændre synlighed",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditMaterial = () => {
+    setMaterialToEdit({
+      id: file.id,
+      title: file.title,
+      author: file.author,
+      format: file.format,
+      genre: (file as any).genre || '',
+      language: (file as any).language || '',
+      difficulty: (file as any).difficulty || '',
+      class_level: (file as any).classLevel || '',
+      tags: file.tags || [],
+      description: (file as any).description || '',
+      is_public: file.isPublic,
+      file_url: file.fileUrl
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleUpdateMaterial = async (updates: any) => {
+    try {
+      const { error } = await supabase
+        .from('materials')
+        .update(updates)
+        .eq('id', file.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Materiale opdateret",
+        description: "Ændringerne er gemt successfully"
+      });
+
+      setEditModalOpen(false);
+      // Refresh the file data by triggering a refetch
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating material:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke opdatere materialet",
         variant: "destructive"
       });
     }
@@ -223,6 +271,17 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
                   {file.isPublic ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
                   {file.isPublic ? "Gør privat" : "Gør offentligt"}
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleEditMaterial();
+                  }}
+                  className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
+                >
+                  <Edit3 className="h-4 w-4 mr-2" />
+                  Rediger beskrivelse
+                </DropdownMenuItem>
                 {/* Fast "Del fil" (offentligt) */}
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -296,37 +355,56 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
   );
 
   if (isSharedView) {
-    return <FileContent />;
+    return (
+      <>
+        <FileContent />
+        <MaterialEditModal
+          open={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          onUpdate={handleUpdateMaterial}
+          material={materialToEdit}
+        />
+      </>
+    );
   }
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger>
-        <FileContent />
-      </ContextMenuTrigger>
-      <ContextMenuContent className="bg-white border border-gray-200 shadow-lg z-50">
-        <ContextMenuItem
-          onClick={() => handleToggleVisibility()}
-          className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
-        >
-          {file.isPublic ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-          {file.isPublic ? "Gør privat" : "Gør offentligt"}
-        </ContextMenuItem>
-        <ContextMenuItem
-          onClick={() => handleShare()}
-          className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
-        >
-          <Share2 className="h-4 w-4 mr-2" />
-          Del materiale
-        </ContextMenuItem>
-        <ContextMenuItem
-          onClick={() => onDelete(file.id)}
-          className="hover:bg-red-500/20 focus:bg-red-500/20 transition-colors text-red-600"
-        >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Slet materiale
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+    <>
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <FileContent />
+        </ContextMenuTrigger>
+        <ContextMenuContent className="bg-white border border-gray-200 shadow-lg z-50">
+          <ContextMenuItem
+            onClick={() => handleToggleVisibility()}
+            className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
+          >
+            {file.isPublic ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+            {file.isPublic ? "Gør privat" : "Gør offentligt"}
+          </ContextMenuItem>
+          <ContextMenuItem
+            onClick={() => handleShare()}
+            className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
+          >
+            <Share2 className="h-4 w-4 mr-2" />
+            Del materiale
+          </ContextMenuItem>
+          <ContextMenuItem
+            onClick={() => onDelete(file.id)}
+            className="hover:bg-red-500/20 focus:bg-red-500/20 transition-colors text-red-600"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Slet materiale
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+      
+      <MaterialEditModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onUpdate={handleUpdateMaterial}
+        material={materialToEdit}
+      />
+    </>
   );
 };
