@@ -24,6 +24,8 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [materialToEdit, setMaterialToEdit] = useState<any>(null);
   const { toast } = useToast();
+  
+  console.log('FileCard rendered for:', file.title, 'isSharedView:', isSharedView);
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData("text/plain", file.id);
@@ -250,6 +252,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
                   variant="outline" 
                   className="h-8 px-3 bg-background/50 border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
                   onClick={(e) => {
+                    console.log('Three dots menu clicked for:', file.title);
                     e.stopPropagation();
                     e.preventDefault();
                   }}

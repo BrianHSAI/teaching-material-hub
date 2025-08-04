@@ -347,8 +347,9 @@ const Index = () => {
                 onDrop={handleDesktopDrop}
               >
                 {/* Grouped Files on desktop */}
-                {groupedFilesList.map(group => (
-                  group.files.length === 1 ? (
+                {groupedFilesList.map(group => {
+                  console.log('Rendering group:', group.title, 'files:', group.files.length);
+                  return group.files.length === 1 ? (
                     <FileCard
                       key={group.files[0].id}
                       file={group.files[0]}
@@ -369,8 +370,8 @@ const Index = () => {
                       onUpdateVisibility={handleUpdateFileVisibility}
                       folders={legacyFolders}
                     />
-                  )
-                ))}
+                  );
+                })}
 
                 {/* Drop zone hint when dragging */}
                 {isDragOverDesktop && (
