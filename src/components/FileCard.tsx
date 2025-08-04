@@ -125,6 +125,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
   };
 
   const handleEditMaterial = () => {
+    console.log('handleEditMaterial called for file:', file);
     setMaterialToEdit({
       id: file.id,
       title: file.title,
@@ -139,6 +140,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
       is_public: file.isPublic,
       file_url: file.fileUrl
     });
+    console.log('Opening edit modal');
     setEditModalOpen(true);
   };
 
@@ -275,6 +277,7 @@ export const FileCard = ({ file, onMoveToFolder, onDelete, onUpdateVisibility, f
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
+                    console.log('Edit description clicked');
                     handleEditMaterial();
                   }}
                   className="hover:bg-primary/20 focus:bg-primary/20 transition-colors text-gray-900"
