@@ -125,6 +125,45 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audit_log: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          share_id: string | null
+          share_type: string | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          share_id?: string | null
+          share_type?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          share_id?: string | null
+          share_type?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       shared_link_otps: {
         Row: {
           created_at: string
@@ -163,7 +202,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_expired_otps: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
