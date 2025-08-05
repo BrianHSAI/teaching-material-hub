@@ -186,6 +186,12 @@ const Index = () => {
 
   // Group files by title, language, and format - Fixed grouping logic
   const groupedFiles = desktopFiles.reduce((acc, file) => {
+    // Skip files with null or undefined title, language, or format
+    if (!file.title || !file.language || !file.format) {
+      console.warn('Skipping file with missing data:', file);
+      return acc;
+    }
+    
     const key = `${file.title.toLowerCase()}-${file.language.toLowerCase()}-${file.format.toLowerCase()}`;
     if (!acc[key]) {
       acc[key] = {
