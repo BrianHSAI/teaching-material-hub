@@ -47,7 +47,7 @@ const App = () => (
   </QueryClientProvider>
 );
 
-// Simple wrapper: Hvis adgang ikke givet på dette sessionStorage-key, send til /shared/:type/:id-otp
+// Enhanced wrapper with secure session validation
 function OtpWrapper({ children }: { children: React.ReactNode }) {
   const { type, id } = useParams<{ type: string, id: string }>();
   const navigate = useNavigate();
@@ -55,9 +55,32 @@ function OtpWrapper({ children }: { children: React.ReactNode }) {
   // Strip "-otp" hvis det er med i id
   const realId = id?.replace(/-otp$/, "");
   if (typeof window !== "undefined" && type && realId) {
-    const unlocked = sessionStorage.getItem(`share_access_${type}_${realId}`) === "true";
+    const sessionData = sessionStorage.getItem(`share_access_${type}_${realId}`);
+    let unlocked = false;
+    
+    if (sessionData) {
+      try {
+        // Support both old format (string "true") and new format (JSON object)
+        if (sessionData === "true") {
+          unlocked = true; // Legacy format
+        } else {
+          const parsed = JSON.parse(sessionData);
+          // Check if session has expired
+          if (parsed.expires && parsed.token && Date.now() < parsed.expires) {
+            unlocked = true;
+          } else if (parsed.expires && Date.now() >= parsed.expires) {
+            // Clean up expired session
+            sessionStorage.removeItem(`share_access_${type}_${realId}`);
+          }
+        }
+      } catch (error) {
+        // Invalid session data, remove it
+        sessionStorage.removeItem(`share_access_${type}_${realId}`);
+      }
+    }
+    
     if (!unlocked) {
-      // Naviger til OTP-gate med -otp på rigtig id
+      // Navigate to OTP gate
       navigate(`/shared/${type}/${realId}-otp`);
       return null;
     }

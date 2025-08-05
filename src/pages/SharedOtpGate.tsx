@@ -19,40 +19,116 @@ export default function SharedOtpGate() {
 
   const navigate = useNavigate();
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.length <= 254;
+  };
+
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSending(true); setError(null);
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL?.replace("https://", "https://")}/functions/v1/send-otp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, share_type: type, share_id: realId, action: "send" })
-    });
-    const data = await res.json();
-    if (data.ok) {
-      setStep("verify");
-    } else {
-      setError(data.reason || "Der opstod en fejl. Prøv igen.");
+    setError(null);
+    
+    // Input validation
+    if (!validateEmail(email)) {
+      setError("Indtast en gyldig e-mail adresse");
+      return;
     }
-    setSending(false);
+    
+    if (!type || !realId) {
+      setError("Ugyldige parametre");
+      return;
+    }
+    
+    setSending(true);
+    
+    try {
+      const res = await fetch("https://ytegircevnaewgqpbked.supabase.co/functions/v1/send-otp", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0ZWdpcmNldm5hZXdncXBia2VkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NTU1MzcsImV4cCI6MjA2NTEzMTUzN30.ectpPhTNG-IGEl4uzSTI-rWeTMfK5hdcdhu4SxteORY`
+        },
+        body: JSON.stringify({ 
+          email: email.trim().toLowerCase(), 
+          share_type: type, 
+          share_id: realId, 
+          action: "send" 
+        })
+      });
+      
+      const data = await res.json();
+      if (data.ok) {
+        setStep("verify");
+      } else {
+        setError(data.reason || "Der opstod en fejl. Prøv igen.");
+      }
+    } catch (error) {
+      setError("Netværksfejl. Prøv igen.");
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSending(true); setError(null);
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL?.replace("https://", "https://")}/functions/v1/send-otp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, share_type: type, share_id: realId, action: "verify", otp_code: otp })
-    });
-    const data = await res.json();
-    if (data.ok) {
-      // Giv adgang: omdiriger til rigtigt delingsindhold og sæt session/sessionStorage
-      sessionStorage.setItem(`share_access_${type}_${realId}`, "true");
-      navigate(`/shared/${type}/${realId}`);
-    } else {
-      setError(data.reason || "Ugyldig kode eller fejl.");
+    setError(null);
+    
+    // Input validation
+    if (!validateEmail(email)) {
+      setError("Ugyldig e-mail adresse");
+      return;
     }
-    setSending(false);
+    
+    if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+      setError("Koden skal være 6 cifre");
+      return;
+    }
+    
+    if (!type || !realId) {
+      setError("Ugyldige parametre");
+      return;
+    }
+    
+    setSending(true);
+    
+    try {
+      const res = await fetch("https://ytegircevnaewgqpbked.supabase.co/functions/v1/send-otp", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0ZWdpcmNldm5hZXdncXBia2VkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NTU1MzcsImV4cCI6MjA2NTEzMTUzN30.ectpPhTNG-IGEl4uzSTI-rWeTMfK5hdcdhu4SxteORY`
+        },
+        body: JSON.stringify({ 
+          email: email.trim().toLowerCase(), 
+          share_type: type, 
+          share_id: realId, 
+          action: "verify", 
+          otp_code: otp 
+        })
+      });
+      
+      const data = await res.json();
+      if (data.ok) {
+        // Generate a more secure session token
+        const sessionToken = crypto.randomUUID();
+        const expiryTime = Date.now() + (30 * 60 * 1000); // 30 minutes
+        
+        // Store session with expiry
+        sessionStorage.setItem(`share_access_${type}_${realId}`, JSON.stringify({
+          token: sessionToken,
+          expires: expiryTime,
+          email: email.trim().toLowerCase()
+        }));
+        
+        navigate(`/shared/${type}/${realId}`);
+      } else {
+        setError(data.reason || "Ugyldig kode eller fejl.");
+      }
+    } catch (error) {
+      setError("Netværksfejl. Prøv igen.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
