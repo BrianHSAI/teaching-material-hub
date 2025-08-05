@@ -12,10 +12,15 @@ interface MaterialEditModalProps {
   open: boolean;
   onClose: () => void;
   onUpdate: (materialData: Partial<Material>) => void;
-  material: Material;
+  material: Material | null;
 }
 
 export const MaterialEditModal = ({ open, onClose, onUpdate, material }: MaterialEditModalProps) => {
+  // Don't render if material is null
+  if (!material) {
+    return null;
+  }
+
   const [formData, setFormData] = useState({
     title: material.title,
     author: material.author,
